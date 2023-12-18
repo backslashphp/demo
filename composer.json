@@ -1,0 +1,34 @@
+{
+    "require": {
+        "php": "^8.1",
+        "ext-json": "*",
+        "ext-pdo": "*",
+        "backslashphp/backslash": "^1.0",
+        "psr/container": "^2.0",
+        "ramsey/uuid": "^4.7"
+    },
+    "require-dev": {
+        "ext-pdo_sqlite": "*",
+        "friendsofphp/php-cs-fixer": "^3",
+        "nunomaduro/collision": "^6",
+        "phpstan/phpstan": "^1",
+        "phpunit/phpunit": "^8 || ^9",
+        "squizlabs/php_codesniffer": "^3"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Demo\\": "src/",
+            "Demo\\Test\\": "tests/"
+        }
+    },
+    "scripts": {
+        "format": "php-cs-fixer fix",
+        "scan": "phpstan analyse",
+        "style": "phpcs -p -s",
+        "test": "phpunit"
+    },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true
+    }
+}

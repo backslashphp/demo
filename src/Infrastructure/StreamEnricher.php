@@ -4,24 +4,24 @@ declare(strict_types=1);
 
 namespace Demo\Infrastructure;
 
-use Backslash\Aggregate\Stream;
+use Backslash\Domain\RecordedEventStream;
 use Backslash\StreamEnricher\StreamEnricherInterface;
 
 class StreamEnricher implements StreamEnricherInterface
 {
     private bool $enabled = true;
 
-    public function enrich(Stream $stream): Stream
+    public function enrich(RecordedEventStream $stream): RecordedEventStream
     {
         if (!$this->enabled) {
             return $stream;
         }
-        $newStream = new Stream($stream->getAggregateId(), $stream->getAggregateType());
+        $newStream = new RecordedEventStream();
         foreach ($stream->getRecordedEvents() as $recordedEvent) {
             $metadata = $recordedEvent->getMetadata();
             $newMetadata = $metadata->with('correlation_id', CorrelationId::get());
             $newRecordedEvent = $recordedEvent->withMetadata($newMetadata);
-            $newStream = $newStream->withRecordedEvent($newRecordedEvent);
+            $newStream = $newStream->withRecordedEvents($newRecordedEvent);
         }
         return $newStream;
     }

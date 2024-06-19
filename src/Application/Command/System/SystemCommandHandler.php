@@ -7,9 +7,13 @@ namespace Demo\Application\Command\System;
 use Backslash\CommandDispatcher\DispatcherInterface;
 use Backslash\EventStore\EventStoreInterface;
 use Backslash\Pdo\PdoInterface;
+use Backslash\PdoEventStore\Config;
+use Backslash\PdoEventStore\Driver;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
 use Demo\Application\Command\AbstractCommandHandler;
-use Demo\UI\Projection\ProjectList\ProjectListProjection;
+use Demo\UI\Projection\CourseList\CourseListProjection;
+use Demo\UI\Projection\EnrollmentPeriod\EnrollmentPeriodProjection;
+use Demo\UI\Projection\StudentList\StudentListProjection;
 
 class SystemCommandHandler extends AbstractCommandHandler
 {
@@ -46,14 +50,21 @@ class SystemCommandHandler extends AbstractCommandHandler
 
     protected function handleCreateDatabaseCommand(CreateDatabaseCommand $command): void
     {
-        $this->pdo->exec(file_get_contents('resources/create_table_event_store.sql'));
+        $this->pdo->exec(Driver::SQLITE->buildCreateTableStatement(new Config()));
         $this->pdo->exec(file_get_contents('resources/create_table_projection_store.sql'));
     }
 
     protected function handleInitializeProjectionsCommand(InitializeProjectionsCommand $command): void
     {
-        if (!$this->projections->has(ProjectListProjection::ID, ProjectListProjection::class)) {
-            $this->projections->store(new ProjectListProjection());
+        $projections = [
+            CourseListProjection::class,
+            EnrollmentPeriodProjection::class,
+            StudentListProjection::class,
+        ];
+        foreach ($projections as $projection) {
+            if (!$this->projections->has($projection::ID, $projection)) {
+                $this->projections->store(new $projection());
+            }
         }
     }
 

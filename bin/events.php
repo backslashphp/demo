@@ -12,17 +12,16 @@ $container = include __DIR__ . '/../bootstrap.php';
 $pdo = $container->get(PdoInterface::class);
 
 $rows = [
-    ['#', 'AGGREGATE', 'TYPE', 'VERSION', 'CLASS', 'PAYLOAD', 'METADATA', 'TIMESTAMP'],
+    ['#', 'UID', 'CLASS', 'PAYLOAD', 'IDENTIFIERS', 'METADATA', 'TIMESTAMP'],
 ];
 $query = $pdo->query('SELECT * FROM `event_store` ORDER BY `sequence` ASC');
 while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
     $rows[] = [
         $row['sequence'],
-        $row['aggregate_id'],
-        $row['aggregate_type'],
-        $row['aggregate_version'],
+        $row['event_uid'],
         $row['event_class'],
         $row['event_payload'],
+        $row['event_identifiers'],
         $row['event_metadata'],
         $row['event_time'],
     ];

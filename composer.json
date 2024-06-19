@@ -1,11 +1,11 @@
 {
     "require": {
-        "php": "^8.1",
+        "php": "^8.2",
         "ext-json": "*",
         "ext-pdo": "*",
-        "backslashphp/backslash": "^1.0",
-        "psr/container": "^2.0",
-        "ramsey/uuid": "^4.7"
+        "backslashphp/backslash": "^2",
+        "psr/container": "^2",
+        "ramsey/uuid": "^4"
     },
     "require-dev": {
         "ext-pdo_sqlite": "*",

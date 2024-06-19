@@ -17,6 +17,7 @@ use Backslash\Pdo\PdoInterface;
 use Backslash\Pdo\PdoProxy;
 use Backslash\PdoEventStore\Config as PdoEventStoreConfig;
 use Backslash\PdoEventStore\JsonEventSerializer;
+use Backslash\PdoEventStore\JsonIdentifiersSerializer;
 use Backslash\PdoEventStore\JsonMetadataSerializer;
 use Backslash\PdoEventStore\PdoEventStoreAdapter;
 use Backslash\PdoProjectionStore\Config as PdoProjectionStoreConfig;
@@ -24,6 +25,8 @@ use Backslash\PdoProjectionStore\PdoProjectionStoreAdapter;
 use Backslash\ProjectionStore\ProjectionStore;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
 use Backslash\ProjectionStoreTransactionCommandDispatcherMiddleware\ProjectionStoreTransactionCommandDispatcherMiddleware;
+use Backslash\Repository\Repository;
+use Backslash\Repository\RepositoryInterface;
 use Backslash\Serializer\SerializeFunctionSerializer;
 use Backslash\Serializer\Serializer;
 use Backslash\StreamEnricher\StreamEnricherEventBusMiddleware;
@@ -31,19 +34,13 @@ use Backslash\StreamEnricher\StreamEnricherEventStoreMiddleware;
 use Backslash\StreamEnricher\StreamEnricherInterface;
 use Demo\Application\AbstractEventHandler;
 use Demo\Application\Command\AbstractCommandHandler;
-use Demo\Application\Command\Project\ProjectCommandHandler;
+use Demo\Application\Command\Course\CourseCommandHandler;
+use Demo\Application\Command\Enrollment\EnrollmentCommandHandler;
+use Demo\Application\Command\Student\StudentCommandHandler;
 use Demo\Application\Command\System\SystemCommandHandler;
-use Demo\Application\Command\Task\TaskCommandHandler;
-use Demo\Application\IdResolver\IdResolverInterface;
-use Demo\Application\Processor\ProjectStatus\ProjectStatusProcessor;
-use Demo\Domain\Project\ProjectRepository;
-use Demo\Domain\Sequence\SequenceNumberInterface;
-use Demo\Domain\Task\TaskRepository;
-use Demo\Infrastructure\Application\IdResolver\IdResolver;
-use Demo\Infrastructure\Application\IdResolver\IdResolverProjector;
-use Demo\Infrastructure\Domain\Sequence\SequenceNumber;
-use Demo\Infrastructure\Domain\Sequence\SequenceNumberProjector;
-use Demo\UI\Projection\ProjectList\ProjectListProjector;
+use Demo\UI\Projection\CourseList\CourseListProjector;
+use Demo\UI\Projection\EnrollmentPeriod\EnrollmentPeriodProjector;
+use Demo\UI\Projection\StudentList\StudentListProjector;
 use PDO;
 use Psr\Container\ContainerInterface;
 use Ramsey\Uuid\Uuid;
@@ -51,19 +48,19 @@ use Ramsey\Uuid\Uuid;
 class Container implements ContainerInterface
 {
     private const COMMAND_HANDLERS = [
-        ProjectCommandHandler::class,
+        CourseCommandHandler::class,
+        EnrollmentCommandHandler::class,
+        StudentCommandHandler::class,
         SystemCommandHandler::class,
-        TaskCommandHandler::class,
     ];
 
     private const PROJECTORS = [
-        IdResolverProjector::class,
-        ProjectListProjector::class,
-        SequenceNumberProjector::class,
+        CourseListProjector::class,
+        EnrollmentPeriodProjector::class,
+        StudentListProjector::class,
     ];
 
     private const PROCESSORS = [
-        ProjectStatusProcessor::class,
     ];
 
     private array $cache = [];
@@ -131,13 +128,26 @@ class Container implements ContainerInterface
     private function getServices(): array
     {
         return [
+            CourseCommandHandler::class => fn (ContainerInterface $c) => new CourseCommandHandler(
+                $c->get(RepositoryInterface::class),
+            ),
+            CourseListProjector::class => fn (ContainerInterface $c) => new CourseListProjector(
+                $c->get(ProjectionStoreInterface::class),
+            ),
             DispatcherInterface::class => function (ContainerInterface $c) {
                 $dispatcher = new Dispatcher();
+                $dispatcher->addMiddleware($c->get(ExitOnErrorCommandDispatcherMiddleware::class));
                 $dispatcher->addMiddleware(
                     new ProjectionStoreTransactionCommandDispatcherMiddleware($c->get(ProjectionStoreInterface::class)),
                 );
                 return $dispatcher;
             },
+            EnrollmentCommandHandler::class => fn (ContainerInterface $c) => new EnrollmentCommandHandler(
+                $c->get(RepositoryInterface::class),
+            ),
+            EnrollmentPeriodProjector::class => fn (ContainerInterface $c) => new EnrollmentPeriodProjector(
+                $c->get(ProjectionStoreInterface::class),
+            ),
             EventBusInterface::class => function (ContainerInterface $c) {
                 $bus = new EventBus();
                 $bus->addMiddleware(new StreamEnricherEventBusMiddleware($c->get(StreamEnricherInterface::class)));
@@ -149,6 +159,7 @@ class Container implements ContainerInterface
                         $c->get(PdoInterface::class),
                         new PdoEventStoreConfig(),
                         new Serializer(new JsonEventSerializer()),
+                        new Serializer(new JsonIdentifiersSerializer()),
                         new Serializer(new JsonMetadataSerializer()),
                         fn () => Uuid::uuid4()->toString(),
                     ),
@@ -156,17 +167,11 @@ class Container implements ContainerInterface
                 $store->addMiddleware(new StreamEnricherEventStoreMiddleware($c->get(StreamEnricherInterface::class)));
                 return $store;
             },
-            IdResolverInterface::class => fn (ContainerInterface $c) => new IdResolver(
-                $c->get(ProjectionStoreInterface::class),
-            ),
-            IdResolverProjector::class => fn (ContainerInterface $c) => new IdResolverProjector(
-                $c->get(ProjectionStoreInterface::class),
-            ),
-            PdoInterface::class => fn () => new PdoProxy(fn () => new PDO('sqlite:data/demo.sqlite')),
-            ProjectCommandHandler::class => fn (ContainerInterface $c) => new ProjectCommandHandler(
-                $c->get(ProjectRepository::class),
-                $c->get(SequenceNumberInterface::class),
-            ),
+            ExitOnErrorCommandDispatcherMiddleware::class => fn () => new ExitOnErrorCommandDispatcherMiddleware(),
+            PdoInterface::class => function () {
+                $dsn = getenv('TESTING') ? 'sqlite::memory:' : 'sqlite:data/demo.sqlite';
+                return new PdoProxy(fn () => new PDO($dsn));
+            },
             ProjectionStoreInterface::class => function (ContainerInterface $c) {
                 $store = new ProjectionStore(
                     new PdoProjectionStoreAdapter(
@@ -178,37 +183,22 @@ class Container implements ContainerInterface
                 $store->addMiddleware(new CacheProjectionStoreMiddleware());
                 return $store;
             },
-            ProjectListProjector::class => fn (ContainerInterface $c) => new ProjectListProjector(
-                $c->get(ProjectionStoreInterface::class),
-            ),
-            ProjectRepository::class => fn (ContainerInterface $c) => new ProjectRepository(
+            RepositoryInterface::class => fn (ContainerInterface $c) => new Repository(
                 $c->get(EventStoreInterface::class),
                 $c->get(EventBusInterface::class),
             ),
-            ProjectStatusProcessor::class => fn (ContainerInterface $c) => new ProjectStatusProcessor(
-                $c->get(ProjectionStoreInterface::class),
-                $c->get(ProjectRepository::class),
-            ),
-            SequenceNumberInterface::class => fn (ContainerInterface $c) => new SequenceNumber(
-                $c->get(ProjectionStoreInterface::class),
-            ),
-            SequenceNumberProjector::class => fn (ContainerInterface $c) => new SequenceNumberProjector(
-                $c->get(ProjectionStoreInterface::class),
-            ),
             StreamEnricherInterface::class => fn () => new StreamEnricher(),
+            StudentCommandHandler::class => fn (ContainerInterface $c) => new StudentCommandHandler(
+                $c->get(RepositoryInterface::class),
+            ),
+            StudentListProjector::class => fn (ContainerInterface $c) => new StudentListProjector(
+                $c->get(ProjectionStoreInterface::class),
+            ),
             SystemCommandHandler::class => fn (ContainerInterface $c) => new SystemCommandHandler(
                 $c->get(ProjectionStoreInterface::class),
                 $c->get(EventStoreInterface::class),
                 $c->get(DispatcherInterface::class),
                 $c->get(PdoInterface::class),
-            ),
-            TaskCommandHandler::class => fn (ContainerInterface $c) => new TaskCommandHandler(
-                $c->get(TaskRepository::class),
-                $c->get(SequenceNumberInterface::class),
-            ),
-            TaskRepository::class => fn (ContainerInterface $c) => new TaskRepository(
-                $c->get(EventStoreInterface::class),
-                $c->get(EventBusInterface::class),
             ),
         ];
     }

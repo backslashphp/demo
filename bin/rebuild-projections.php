@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Backslash\Aggregate\RecordedEvent;
 use Backslash\CommandDispatcher\DispatcherInterface;
+use Backslash\Domain\RecordedEvent;
 use Backslash\EventBus\EventBusInterface;
 use Backslash\EventStore\EventStoreInterface;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
@@ -32,9 +32,8 @@ $enricher->disable();
 $count = 0;
 $inspector = new Inspector(
     $eventBus,
-    function (string $aggregateId, RecordedEvent $recordedEvent) use (&$count): void {
+    function (RecordedEvent $recordedEvent) use (&$count): void {
         echo str_pad('No:', 20) . ++$count . PHP_EOL;
-        echo str_pad('Aggregate:', 20) . $aggregateId . PHP_EOL;
         echo str_pad('Event:', 20) . $recordedEvent->getEvent()::class . PHP_EOL;
         echo str_pad('Timestamp:', 20) . $recordedEvent->getRecordTime()->format('Y-m-d\TH:i:s.uP') . PHP_EOL . PHP_EOL;
     },
@@ -45,4 +44,4 @@ $eventStore->inspect($inspector);
 $projections = $container->get(ProjectionStoreInterface::class);
 $projections->commit();
 
-echo 'PROJECTIONS REBUILDED SUCCESSFULLY' . PHP_EOL;
+echo 'PROJECTIONS REBUILT SUCCESSFULLY' . PHP_EOL;

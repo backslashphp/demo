@@ -7,11 +7,10 @@ namespace Demo\UI\Projection\CourseList;
 use Backslash\ProjectionStore\ProjectionNotFoundException;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
 use Demo\Application\AbstractEventHandler;
-use Demo\Domain\Event\CourseCanceledEvent;
 use Demo\Domain\Event\CourseCapacityChangedEvent;
-use Demo\Domain\Event\CourseCreatedEvent;
-use Demo\Domain\Event\StudentWithdrawnFromCourseEvent;
-use Demo\Domain\Event\StudentEnrolledInCourseEvent;
+use Demo\Domain\Event\CourseDefinedEvent;
+use Demo\Domain\Event\StudentUnsubscribedFromCourseEvent;
+use Demo\Domain\Event\StudentSubscribedToCourseEvent;
 use Demo\Domain\Event\StudentRegisteredEvent;
 
 class CourseListProjector extends AbstractEventHandler
@@ -26,20 +25,12 @@ class CourseListProjector extends AbstractEventHandler
     public static function getSubscribedEvents(): array
     {
         return [
-            CourseCanceledEvent::class,
             CourseCapacityChangedEvent::class,
-            CourseCreatedEvent::class,
-            StudentWithdrawnFromCourseEvent::class,
-            StudentEnrolledInCourseEvent::class,
+            CourseDefinedEvent::class,
             StudentRegisteredEvent::class,
+            StudentSubscribedToCourseEvent::class,
+            StudentUnsubscribedFromCourseEvent::class,
         ];
-    }
-
-    protected function handleCourseCanceledEvent(CourseCanceledEvent $event): void
-    {
-        $list = $this->getList();
-        $list->cancelCourse($event->courseId);
-        $this->projections->store($list);
     }
 
     protected function handleCourseCapacityChangedEvent(CourseCapacityChangedEvent $event): void
@@ -49,31 +40,31 @@ class CourseListProjector extends AbstractEventHandler
         $this->projections->store($list);
     }
 
-    protected function handleCourseCreatedEvent(CourseCreatedEvent $event): void
+    protected function handleCourseDefinedEvent(CourseDefinedEvent $event): void
     {
         $list = $this->getList();
-        $list->addCourse($event->courseId, $event->name, $event->capacity);
+        $list->defineCourse($event->courseId, $event->name, $event->capacity);
         $this->projections->store($list);
     }
 
-    protected function handleStudentWithdrawnFromCourseEvent(StudentWithdrawnFromCourseEvent $event): void
+    protected function handleStudentSubscribedToCourseEvent(StudentSubscribedToCourseEvent $event): void
     {
         $list = $this->getList();
-        $list->withdraw($event->courseId, $event->studentId);
+        $list->subscribe($event->courseId, $event->studentId);
         $this->projections->store($list);
     }
 
-    protected function handleStudentEnrolledInCourseEvent(StudentEnrolledInCourseEvent $event): void
+    protected function handleStudentUnsubscribedFromCourseEvent(StudentUnsubscribedFromCourseEvent $event): void
     {
         $list = $this->getList();
-        $list->enroll($event->courseId, $event->studentId);
+        $list->unsubscribe($event->courseId, $event->studentId);
         $this->projections->store($list);
     }
 
     protected function handleStudentRegisteredEvent(StudentRegisteredEvent $event): void
     {
         $list = $this->getList();
-        $list->addStudent($event->studentId, $event->name);
+        $list->registerStudent($event->studentId, $event->name);
         $this->projections->store($list);
     }
 

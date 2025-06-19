@@ -10,9 +10,9 @@ use Backslash\Pdo\PdoInterface;
 use Backslash\PdoEventStore\Config;
 use Backslash\PdoEventStore\Driver;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
+use Backslash\Repository\RepositoryInterface;
 use Demo\Application\Command\AbstractCommandHandler;
 use Demo\UI\Projection\CourseList\CourseListProjection;
-use Demo\UI\Projection\EnrollmentPeriod\EnrollmentPeriodProjection;
 use Demo\UI\Projection\StudentList\StudentListProjection;
 
 class SystemCommandHandler extends AbstractCommandHandler
@@ -26,11 +26,13 @@ class SystemCommandHandler extends AbstractCommandHandler
     private PdoInterface $pdo;
 
     public function __construct(
+        RepositoryInterface $repository,
         ProjectionStoreInterface $projections,
         EventStoreInterface $eventStore,
         DispatcherInterface $dispatcher,
         PdoInterface $pdo,
     ) {
+        parent::__construct($repository);
         $this->projections = $projections;
         $this->eventStore = $eventStore;
         $this->dispatcher = $dispatcher;
@@ -58,7 +60,6 @@ class SystemCommandHandler extends AbstractCommandHandler
     {
         $projections = [
             CourseListProjection::class,
-            EnrollmentPeriodProjection::class,
             StudentListProjection::class,
         ];
         foreach ($projections as $projection) {

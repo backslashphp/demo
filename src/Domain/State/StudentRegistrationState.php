@@ -9,8 +9,8 @@ use Backslash\EventStore\Query\EventClass;
 use Backslash\EventStore\Query\Identifier;
 use Backslash\EventStore\Query\QueryInterface;
 use Demo\Domain\Event\StudentRegisteredEvent;
-use RuntimeException;
-use UnexpectedValueException;
+use Demo\Domain\Exception\IdAlreadyUsedException;
+use Demo\Domain\Exception\InvalidIdException;
 
 class StudentRegistrationState extends AbstractState
 {
@@ -27,10 +27,10 @@ class StudentRegistrationState extends AbstractState
     public function register(string $studentId, string $name): void
     {
         if ($this->registered) {
-            throw new RuntimeException('ID already used.');
+            throw new IdAlreadyUsedException();
         }
         if (!Util::isNumber($studentId)) {
-            throw new UnexpectedValueException('ID must be an number.');
+            throw new InvalidIdException();
         }
         $this->apply(new StudentRegisteredEvent($studentId, $name));
     }

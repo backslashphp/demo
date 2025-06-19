@@ -20,9 +20,12 @@ Featured Backslash components are:
 
 ## Domain rules
 
-- A student cannot be enrolled in more than 3 courses.
-- A course cannot take more students than its capacity.
-- Enrollments cannot occur outside the enrollment period.
+Rules are inspired by the [Course Subscriptions example](https://dcb.events/examples/course-subscriptions/) of
+the Dynamic Consistency Boundary website.
+
+- A course cannot accept more students than its capacity.
+- The course capacity can change at any time to any positive integer different from the current one.
+- A student cannot join more than 3 courses.
 
 ## Getting started
 
@@ -60,7 +63,7 @@ php register-student.php
 ### Create a course
 
 ```sh
-php create-course.php
+php define-course.php
 ```
 
 **--id**: The student ID (integer)  
@@ -70,7 +73,7 @@ php create-course.php
 ### Change course capacity
 
 ```sh
-php create-course.php
+php define-course.php
 ```
 
 **--id**: The course ID (integer)  

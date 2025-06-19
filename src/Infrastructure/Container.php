@@ -35,11 +35,10 @@ use Backslash\StreamEnricher\StreamEnricherInterface;
 use Demo\Application\AbstractEventHandler;
 use Demo\Application\Command\AbstractCommandHandler;
 use Demo\Application\Command\Course\CourseCommandHandler;
-use Demo\Application\Command\Enrollment\EnrollmentCommandHandler;
+use Demo\Application\Command\Subscription\SubscriptionCommandHandler;
 use Demo\Application\Command\Student\StudentCommandHandler;
 use Demo\Application\Command\System\SystemCommandHandler;
 use Demo\UI\Projection\CourseList\CourseListProjector;
-use Demo\UI\Projection\EnrollmentPeriod\EnrollmentPeriodProjector;
 use Demo\UI\Projection\StudentList\StudentListProjector;
 use PDO;
 use Psr\Container\ContainerInterface;
@@ -49,14 +48,13 @@ class Container implements ContainerInterface
 {
     private const COMMAND_HANDLERS = [
         CourseCommandHandler::class,
-        EnrollmentCommandHandler::class,
         StudentCommandHandler::class,
+        SubscriptionCommandHandler::class,
         SystemCommandHandler::class,
     ];
 
     private const PROJECTORS = [
         CourseListProjector::class,
-        EnrollmentPeriodProjector::class,
         StudentListProjector::class,
     ];
 
@@ -142,12 +140,6 @@ class Container implements ContainerInterface
                 );
                 return $dispatcher;
             },
-            EnrollmentCommandHandler::class => fn (ContainerInterface $c) => new EnrollmentCommandHandler(
-                $c->get(RepositoryInterface::class),
-            ),
-            EnrollmentPeriodProjector::class => fn (ContainerInterface $c) => new EnrollmentPeriodProjector(
-                $c->get(ProjectionStoreInterface::class),
-            ),
             EventBusInterface::class => function (ContainerInterface $c) {
                 $bus = new EventBus();
                 $bus->addMiddleware(new StreamEnricherEventBusMiddleware($c->get(StreamEnricherInterface::class)));
@@ -194,7 +186,11 @@ class Container implements ContainerInterface
             StudentListProjector::class => fn (ContainerInterface $c) => new StudentListProjector(
                 $c->get(ProjectionStoreInterface::class),
             ),
+            SubscriptionCommandHandler::class => fn (ContainerInterface $c) => new SubscriptionCommandHandler(
+                $c->get(RepositoryInterface::class),
+            ),
             SystemCommandHandler::class => fn (ContainerInterface $c) => new SystemCommandHandler(
+                $c->get(RepositoryInterface::class),
                 $c->get(ProjectionStoreInterface::class),
                 $c->get(EventStoreInterface::class),
                 $c->get(DispatcherInterface::class),

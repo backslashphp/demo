@@ -22,22 +22,14 @@ class CourseListProjection implements ProjectionInterface, Stringable
             $string .= 'Empty' . PHP_EOL;
         }
         foreach ($this->courses as $course) {
-            if ($course['canceled']) {
-                $string .= sprintf(
-                    '[%s] %s (CANCELED)',
-                    $course['courseId'],
-                    $course['name'],
-                ) . PHP_EOL;
-            } else {
-                $string .= sprintf(
-                    '[%s] %s (%d/%d)',
-                    $course['courseId'],
-                    $course['name'],
-                    count($course['enrollments']),
-                    $course['capacity'],
-                ) . PHP_EOL;
-            }
-            foreach ($course['enrollments'] as $studentId) {
+            $string .= sprintf(
+                '[%s] %s (%d/%d)',
+                $course['courseId'],
+                $course['name'],
+                count($course['subscriptions']),
+                $course['capacity'],
+            ) . PHP_EOL;
+            foreach ($course['subscriptions'] as $studentId) {
                 $string .= sprintf(
                     '    - %s',
                     $this->students[$studentId],
@@ -52,26 +44,20 @@ class CourseListProjection implements ProjectionInterface, Stringable
         return self::ID;
     }
 
-    public function addStudent(string $studentId, string $name): void
-    {
-        $this->students[$studentId] = $name;
-    }
-
-    public function addCourse(string $courseId, string $name, int $capacity): void
+    public function defineCourse(string $courseId, string $name, int $capacity): void
     {
         $this->courses[$courseId] = [
             'courseId' => $courseId,
             'name' => $name,
             'capacity' => $capacity,
-            'enrollments' => [],
+            'subscriptions' => [],
             'canceled' => false,
         ];
     }
 
-    public function cancelCourse(string $courseId): void
+    public function registerStudent(string $studentId, string $name): void
     {
-        $this->courses[$courseId]['canceled'] = true;
-        $this->courses[$courseId]['enrollments'] = [];
+        $this->students[$studentId] = $name;
     }
 
     public function changeCapacity(string $courseId, int $capacity): void
@@ -79,13 +65,13 @@ class CourseListProjection implements ProjectionInterface, Stringable
         $this->courses[$courseId]['capacity'] = $capacity;
     }
 
-    public function enroll(string $courseId, string $studentId): void
+    public function subscribe(string $courseId, string $studentId): void
     {
-        $this->courses[$courseId]['enrollments'][$studentId] = $studentId;
+        $this->courses[$courseId]['subscriptions'][$studentId] = $studentId;
     }
 
-    public function withdraw(string $courseId, string $studentId): void
+    public function unsubscribe(string $courseId, string $studentId): void
     {
-        unset($this->courses[$courseId]['enrollments'][$studentId]);
+        unset($this->courses[$courseId]['subscriptions'][$studentId]);
     }
 }

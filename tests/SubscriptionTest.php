@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Demo\Test;
 
-use Demo\Application\Command\Course\CreateCourseCommand;
-use Demo\Application\Command\Enrollment\EnrollStudentInCourseCommand;
+use Demo\Application\Command\Course\DefineCourseCommand;
+use Demo\Application\Command\Subscription\SubscribeStudentToCourseCommand;
 
-class EnrollmentTest extends TestCase
+class SubscriptionTest extends TestCase
 {
     /** @test */
     public function assert_student_exists(): void
@@ -17,8 +17,8 @@ class EnrollmentTest extends TestCase
 
         $play = $this->newPlay()
             ->expectExceptionMessage('Student does not exist.')
-            ->withInitialCommands(new CreateCourseCommand($courseId, 'Maths', 10))
-            ->dispatch(new EnrollStudentInCourseCommand($nonexistentStudentId, $courseId))
+            ->withInitialCommands(new DefineCourseCommand($courseId, 'Maths', 10))
+            ->dispatch(new SubscribeStudentToCourseCommand($nonexistentStudentId, $courseId))
             ->testThat(function (): void {
                 $this->assertTrue(true);
             });

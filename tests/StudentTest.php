@@ -7,6 +7,7 @@ namespace Demo\Test;
 use Backslash\Scenario\PublishedEvents;
 use Demo\Application\Command\Student\RegisterStudentCommand;
 use Demo\Domain\Event\StudentRegisteredEvent;
+use RuntimeException;
 
 class StudentTest extends TestCase
 {
@@ -30,7 +31,7 @@ class StudentTest extends TestCase
         $studentId = '1';
 
         $play = $this->newPlay()
-            ->expectException(\RuntimeException::class)
+            ->expectException(RuntimeException::class)
             ->withInitialCommands(new RegisterStudentCommand($studentId, 'John'))
             ->dispatch(new RegisterStudentCommand($studentId, 'John'))
             ->testThat(function (): void {

@@ -8,7 +8,7 @@ use Backslash\Domain\EventInterface;
 use Backslash\Domain\Identifiers;
 use Backslash\Domain\ToArrayTrait;
 
-readonly class StudentWithdrawnFromCourseEvent implements EventInterface
+readonly class StudentUnsubscribedFromCourseEvent implements EventInterface
 {
     use ToArrayTrait;
 

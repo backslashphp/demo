@@ -3,11 +3,9 @@
 declare(strict_types=1);
 
 use Backslash\CommandDispatcher\DispatcherInterface;
-use Demo\Application\Command\Course\CancelCourseCommand;
-use Demo\Application\Command\Course\CreateCourseCommand;
-use Demo\Application\Command\Enrollment\EnrollStudentInCourseCommand;
-use Demo\Application\Command\Enrollment\OpenEnrollmentPeriodCommand;
+use Demo\Application\Command\Course\DefineCourseCommand;
 use Demo\Application\Command\Student\RegisterStudentCommand;
+use Demo\Application\Command\Subscription\SubscribeStudentToCourseCommand;
 use Psr\Container\ContainerInterface;
 
 /** @var ContainerInterface $container */
@@ -26,20 +24,16 @@ $dispatcher->dispatch(new RegisterStudentCommand('6', 'Brad'));
 $dispatcher->dispatch(new RegisterStudentCommand('7', 'Kelly'));
 $dispatcher->dispatch(new RegisterStudentCommand('8', 'Alice'));
 
-$dispatcher->dispatch(new CreateCourseCommand('1', 'Algebra', 5));
-$dispatcher->dispatch(new CreateCourseCommand('2', 'Biology', 4));
-$dispatcher->dispatch(new CreateCourseCommand('3', 'Arts', 3));
-$dispatcher->dispatch(new CreateCourseCommand('4', 'Physics', 3));
-$dispatcher->dispatch(new CreateCourseCommand('5', 'Grammar', 4));
+$dispatcher->dispatch(new DefineCourseCommand('1', 'Algebra', 5));
+$dispatcher->dispatch(new DefineCourseCommand('2', 'Biology', 4));
+$dispatcher->dispatch(new DefineCourseCommand('3', 'Arts', 3));
+$dispatcher->dispatch(new DefineCourseCommand('4', 'Physics', 3));
+$dispatcher->dispatch(new DefineCourseCommand('5', 'Grammar', 4));
 
-$dispatcher->dispatch(new OpenEnrollmentPeriodCommand());
-
-$dispatcher->dispatch(new EnrollStudentInCourseCommand('1', '2'));
-$dispatcher->dispatch(new EnrollStudentInCourseCommand('2', '3'));
-$dispatcher->dispatch(new EnrollStudentInCourseCommand('2', '4'));
-$dispatcher->dispatch(new EnrollStudentInCourseCommand('3', '4'));
-
-$dispatcher->dispatch(new CancelCourseCommand('4'));
+$dispatcher->dispatch(new SubscribeStudentToCourseCommand('1', '2'));
+$dispatcher->dispatch(new SubscribeStudentToCourseCommand('2', '3'));
+$dispatcher->dispatch(new SubscribeStudentToCourseCommand('2', '4'));
+$dispatcher->dispatch(new SubscribeStudentToCourseCommand('3', '4'));
 
 echo 'DEMO DATA GENERATED' . PHP_EOL . PHP_EOL;
 

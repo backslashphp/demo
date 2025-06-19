@@ -44,7 +44,7 @@ class StudentListProjection implements ProjectionInterface, Stringable, Countabl
         return count($this->students);
     }
 
-    public function addStudent(string $studentId, string $name): void
+    public function registerStudent(string $studentId, string $name): void
     {
         $this->students[$studentId] = [
             'studentId' => $studentId,
@@ -53,17 +53,17 @@ class StudentListProjection implements ProjectionInterface, Stringable, Countabl
         ];
     }
 
-    public function enroll(string $studentId, string $courseId): void
+    public function subscribe(string $studentId, string $courseId): void
     {
         $this->students[$studentId]['enrollments'][$courseId] = $courseId;
     }
 
-    public function withdraw(string $studentId, string $courseId): void
+    public function unsubscribe(string $studentId, string $courseId): void
     {
         unset($this->students[$studentId]['enrollments'][$courseId]);
     }
 
-    public function addCourse(string $courseId, string $name): void
+    public function defineCourse(string $courseId, string $name): void
     {
         $this->courses[$courseId] = $name;
     }

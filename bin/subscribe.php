@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Backslash\CommandDispatcher\DispatcherInterface;
-use Demo\Application\Command\Enrollment\EnrollStudentInCourseCommand;
+use Demo\Application\Command\Subscription\SubscribeStudentToCourseCommand;
 use Demo\UI\Args;
 use Psr\Container\ContainerInterface;
 
@@ -16,8 +16,8 @@ $args = Args::get('student', 'course');
 
 $studentId = $args['student'];
 $courseId = $args['course'];
-$dispatcher->dispatch(new EnrollStudentInCourseCommand($studentId, $courseId));
+$dispatcher->dispatch(new SubscribeStudentToCourseCommand($studentId, $courseId));
 
-echo 'STUDENT ENROLLED' . PHP_EOL . PHP_EOL;
+echo 'STUDENT SUBSCRIBED TO COURSE' . PHP_EOL . PHP_EOL;
 
 include __DIR__ . '/show.php';

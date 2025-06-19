@@ -9,46 +9,31 @@ use Backslash\EventStore\Query\EventClass;
 use Backslash\EventStore\Query\Identifier;
 use Backslash\EventStore\Query\QueryInterface;
 use Demo\Domain\Event\CourseCapacityChangedEvent;
-use Demo\Domain\Event\CourseCreatedEvent;
-use Demo\Domain\Event\StudentWithdrawnFromCourseEvent;
-use Demo\Domain\Event\StudentEnrolledInCourseEvent;
-use RuntimeException;
-use UnexpectedValueException;
+use Demo\Domain\Event\CourseDefinedEvent;
+use Demo\Domain\Exception\CourseCapacityInvalidException;
+use Demo\Domain\Exception\CourseNotDefinedException;
 
 class CourseCapacityState extends AbstractState
 {
-    private array $enrollments = [];
-
     private int $capacity = 0;
 
-    private bool $courseExists = false;
+    private bool $courseDefined = false;
 
     public static function getQuery(string $courseId): QueryInterface
     {
-        $eventForThisCourseLifecycle = EventClass::in(
+        return EventClass::in(
             CourseCapacityChangedEvent::class,
-            CourseCreatedEvent::class,
+            CourseDefinedEvent::class,
         )->and(Identifier::is('courseId', $courseId));
-
-        $eventForEnrollmentsInThisCourse = EventClass::in(
-            StudentWithdrawnFromCourseEvent::class,
-            StudentEnrolledInCourseEvent::class,
-        )->and(Identifier::is('courseId', $courseId));
-
-        return $eventForThisCourseLifecycle
-            ->or($eventForEnrollmentsInThisCourse);
     }
 
     public function change(string $courseId, int $newCapacity): void
     {
-        if (!$this->courseExists) {
-            throw new RuntimeException('Course does not exist.');
+        if (!$this->courseDefined) {
+            throw new CourseNotDefinedException();
         }
         if ($newCapacity <= 0) {
-            throw new UnexpectedValueException('Capacity must be greater than 0.');
-        }
-        if ($newCapacity < count($this->enrollments)) {
-            throw new UnexpectedValueException('Capacity must be greater or equal to the total of enrollments.');
+            throw new CourseCapacityInvalidException();
         }
         $this->apply(new CourseCapacityChangedEvent($courseId, $this->capacity, $newCapacity));
     }
@@ -58,20 +43,9 @@ class CourseCapacityState extends AbstractState
         $this->capacity = $event->new;
     }
 
-    protected function applyCourseCreatedEvent(CourseCreatedEvent $event): void
+    protected function applyCourseDefinedEvent(CourseDefinedEvent $event): void
     {
         $this->capacity = $event->capacity;
-        $this->enrollments = [];
-        $this->courseExists = true;
-    }
-
-    protected function applyStudentWithdrawnFromCourseEvent(StudentWithdrawnFromCourseEvent $event): void
-    {
-        unset($this->enrollments[$event->studentId]);
-    }
-
-    protected function applyStudentEnrolledInCourseEvent(StudentEnrolledInCourseEvent $event): void
-    {
-        $this->enrollments[$event->studentId] = $event->studentId;
+        $this->courseDefined = true;
     }
 }

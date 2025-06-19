@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Demo\Application\Command\Enrollment;
+namespace Demo\Application\Command\Subscription;
 
-readonly class WithdrawStudentFromCourseCommand
+readonly class SubscribeStudentToCourseCommand
 {
     public function __construct(
         public string $studentId,

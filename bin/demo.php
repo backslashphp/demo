@@ -6,6 +6,7 @@ use Backslash\CommandDispatcher\DispatcherInterface;
 use Demo\Application\Command\Course\DefineCourseCommand;
 use Demo\Application\Command\Student\RegisterStudentCommand;
 use Demo\Application\Command\Subscription\SubscribeStudentToCourseCommand;
+use Demo\Application\Command\System\ResetCommand;
 use Psr\Container\ContainerInterface;
 
 /** @var ContainerInterface $container */
@@ -13,7 +14,7 @@ $container = include __DIR__ . '/../bootstrap.php';
 /** @var DispatcherInterface $dispatcher */
 $dispatcher = $container->get(DispatcherInterface::class);
 
-include __DIR__ . '/reset.php';
+$dispatcher->dispatch(new ResetCommand());
 
 $dispatcher->dispatch(new RegisterStudentCommand('1', 'John'));
 $dispatcher->dispatch(new RegisterStudentCommand('2', 'Mary'));
@@ -34,7 +35,5 @@ $dispatcher->dispatch(new SubscribeStudentToCourseCommand('1', '2'));
 $dispatcher->dispatch(new SubscribeStudentToCourseCommand('2', '3'));
 $dispatcher->dispatch(new SubscribeStudentToCourseCommand('2', '4'));
 $dispatcher->dispatch(new SubscribeStudentToCourseCommand('3', '4'));
-
-echo 'DEMO DATA GENERATED' . PHP_EOL . PHP_EOL;
 
 include __DIR__ . '/show.php';

@@ -19,6 +19,4 @@ $name = $args['name'];
 $capacity = $args['capacity'];
 $dispatcher->dispatch(new DefineCourseCommand($courseId, $name, (int) $capacity));
 
-echo 'COURSE DEFINED' . PHP_EOL . PHP_EOL;
-
 include __DIR__ . '/show.php';

@@ -18,6 +18,4 @@ $studentId = $args['student'];
 $courseId = $args['course'];
 $dispatcher->dispatch(new SubscribeStudentToCourseCommand($studentId, $courseId));
 
-echo 'STUDENT SUBSCRIBED TO COURSE' . PHP_EOL . PHP_EOL;
-
 include __DIR__ . '/show.php';

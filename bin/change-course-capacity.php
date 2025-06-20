@@ -18,6 +18,4 @@ $courseId = $args['id'];
 $capacity = $args['capacity'];
 $dispatcher->dispatch(new ChangeCourseCapacityCommand($courseId, (int) $capacity));
 
-echo 'COURSE CAPACITY CHANGED' . PHP_EOL . PHP_EOL;
-
 include __DIR__ . '/show.php';

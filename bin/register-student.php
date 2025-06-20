@@ -18,6 +18,4 @@ $studentId = $args['id'];
 $name = $args['name'];
 $dispatcher->dispatch(new RegisterStudentCommand($studentId, $name));
 
-echo 'STUDENT REGISTERED' . PHP_EOL . PHP_EOL;
-
 include __DIR__ . '/show.php';

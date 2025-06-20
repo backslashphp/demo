@@ -18,6 +18,4 @@ $studentId = $args['student'];
 $courseId = $args['course'];
 $dispatcher->dispatch(new UnsubscribeStudentFromCourseCommand($studentId, $courseId));
 
-echo 'STUDENT UNSUBSCRIBED FROM COURSE' . PHP_EOL . PHP_EOL;
-
 include __DIR__ . '/show.php';

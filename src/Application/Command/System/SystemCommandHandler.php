@@ -39,17 +39,6 @@ class SystemCommandHandler extends AbstractCommandHandler
         $this->pdo = $pdo;
     }
 
-    public static function getHandledCommands(): array
-    {
-        return [
-            CreateDatabaseCommand::class,
-            InitializeProjectionsCommand::class,
-            PurgeEventsCommand::class,
-            PurgeProjectionsCommand::class,
-            ResetCommand::class,
-        ];
-    }
-
     protected function handleCreateDatabaseCommand(CreateDatabaseCommand $command): void
     {
         $this->pdo->exec(Driver::SQLITE->buildCreateTableStatement(new Config()));

@@ -67,6 +67,9 @@ commands to create students and courses.
 
 As you play with the app, you may open the SQLite database in your favourite IDE to inspect its content.
 
+To understand how all parts of the application are connected, take a look
+at [src/Infrastructure/Container.php](https://github.com/backslashphp/demo/blob/2.x/src/Infrastructure/Container.php).
+
 ## Usage
 
 > Commands in these examples must be run from the `bin` folder.

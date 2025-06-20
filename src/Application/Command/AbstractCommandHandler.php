@@ -19,8 +19,6 @@ abstract class AbstractCommandHandler implements HandlerInterface
         $this->repository = $repository;
     }
 
-    abstract public static function getHandledCommands(): array;
-
     protected function getRepository(): RepositoryInterface
     {
         return $this->repository;

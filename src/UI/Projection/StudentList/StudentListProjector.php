@@ -4,31 +4,24 @@ declare(strict_types=1);
 
 namespace Demo\UI\Projection\StudentList;
 
+use Backslash\EventBus\EventHandlerInterface;
+use Backslash\EventBus\EventHandlerTrait;
 use Backslash\ProjectionStore\ProjectionNotFoundException;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
-use Demo\Application\AbstractEventHandler;
 use Demo\Domain\Event\CourseDefinedEvent;
-use Demo\Domain\Event\StudentUnsubscribedFromCourseEvent;
-use Demo\Domain\Event\StudentSubscribedToCourseEvent;
 use Demo\Domain\Event\StudentRegisteredEvent;
+use Demo\Domain\Event\StudentSubscribedToCourseEvent;
+use Demo\Domain\Event\StudentUnsubscribedFromCourseEvent;
 
-class StudentListProjector extends AbstractEventHandler
+class StudentListProjector implements EventHandlerInterface
 {
+    use EventHandlerTrait;
+
     private ProjectionStoreInterface $projections;
 
     public function __construct(ProjectionStoreInterface $projections)
     {
         $this->projections = $projections;
-    }
-
-    public static function getSubscribedEvents(): array
-    {
-        return [
-            CourseDefinedEvent::class,
-            StudentRegisteredEvent::class,
-            StudentSubscribedToCourseEvent::class,
-            StudentUnsubscribedFromCourseEvent::class,
-        ];
     }
 
     protected function handleCourseDefinedEvent(CourseDefinedEvent $event): void
@@ -62,9 +55,7 @@ class StudentListProjector extends AbstractEventHandler
     private function getList(): StudentListProjection
     {
         try {
-            /**
- * @var StudentListProjection $p
-*/
+            /** @var StudentListProjection $p */
             $p = $this->projections->find(StudentListProjection::ID, StudentListProjection::class);
         } catch (ProjectionNotFoundException) {
             $p = new StudentListProjection();

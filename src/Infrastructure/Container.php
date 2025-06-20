@@ -32,12 +32,25 @@ use Backslash\Serializer\Serializer;
 use Backslash\StreamEnricher\StreamEnricherEventBusMiddleware;
 use Backslash\StreamEnricher\StreamEnricherEventStoreMiddleware;
 use Backslash\StreamEnricher\StreamEnricherInterface;
-use Demo\Application\AbstractEventHandler;
-use Demo\Application\Command\AbstractCommandHandler;
+use Demo\Application\Command\Course\ChangeCourseCapacityCommand;
 use Demo\Application\Command\Course\CourseCommandHandler;
+use Demo\Application\Command\Course\DefineCourseCommand;
+use Demo\Application\Command\Student\RegisterStudentCommand;
+use Demo\Application\Command\Subscription\SubscribeStudentToCourseCommand;
 use Demo\Application\Command\Subscription\SubscriptionCommandHandler;
 use Demo\Application\Command\Student\StudentCommandHandler;
+use Demo\Application\Command\Subscription\UnsubscribeStudentFromCourseCommand;
+use Demo\Application\Command\System\CreateDatabaseCommand;
+use Demo\Application\Command\System\InitializeProjectionsCommand;
+use Demo\Application\Command\System\PurgeEventsCommand;
+use Demo\Application\Command\System\PurgeProjectionsCommand;
+use Demo\Application\Command\System\ResetCommand;
 use Demo\Application\Command\System\SystemCommandHandler;
+use Demo\Domain\Event\CourseCapacityChangedEvent;
+use Demo\Domain\Event\CourseDefinedEvent;
+use Demo\Domain\Event\StudentRegisteredEvent;
+use Demo\Domain\Event\StudentSubscribedToCourseEvent;
+use Demo\Domain\Event\StudentUnsubscribedFromCourseEvent;
 use Demo\UI\Projection\CourseList\CourseListProjector;
 use Demo\UI\Projection\StudentList\StudentListProjector;
 use PDO;
@@ -47,18 +60,40 @@ use Ramsey\Uuid\Uuid;
 class Container implements ContainerInterface
 {
     private const COMMAND_HANDLERS = [
-        CourseCommandHandler::class,
-        StudentCommandHandler::class,
-        SubscriptionCommandHandler::class,
-        SystemCommandHandler::class,
+        CourseCommandHandler::class => [
+            ChangeCourseCapacityCommand::class,
+            DefineCourseCommand::class,
+        ],
+        StudentCommandHandler::class => [
+            RegisterStudentCommand::class,
+        ],
+        SubscriptionCommandHandler::class => [
+            SubscribeStudentToCourseCommand::class,
+            UnsubscribeStudentFromCourseCommand::class,
+        ],
+        SystemCommandHandler::class => [
+            CreateDatabaseCommand::class,
+            InitializeProjectionsCommand::class,
+            PurgeEventsCommand::class,
+            PurgeProjectionsCommand::class,
+            ResetCommand::class,
+        ],
     ];
 
     private const PROJECTORS = [
-        CourseListProjector::class,
-        StudentListProjector::class,
-    ];
-
-    private const PROCESSORS = [
+        CourseListProjector::class => [
+            CourseCapacityChangedEvent::class,
+            CourseDefinedEvent::class,
+            StudentRegisteredEvent::class,
+            StudentSubscribedToCourseEvent::class,
+            StudentUnsubscribedFromCourseEvent::class,
+        ],
+        StudentListProjector::class => [
+            CourseDefinedEvent::class,
+            StudentRegisteredEvent::class,
+            StudentSubscribedToCourseEvent::class,
+            StudentUnsubscribedFromCourseEvent::class,
+        ],
     ];
 
     private array $cache = [];
@@ -67,7 +102,6 @@ class Container implements ContainerInterface
     {
         $this->configureCommandHandlers();
         $this->configureProjectors();
-        $this->configureProcessors();
     }
 
     public function get(string $id)
@@ -89,15 +123,10 @@ class Container implements ContainerInterface
 
     private function configureCommandHandlers(): void
     {
-        /**
- * @var Dispatcher $dispatcher
-*/
+        /** @var Dispatcher $dispatcher */
         $dispatcher = $this->get(DispatcherInterface::class);
-        /**
- * @var AbstractCommandHandler|string $handlerClass
-*/
-        foreach (self::COMMAND_HANDLERS as $handlerClass) {
-            foreach ($handlerClass::getHandledCommands() as $commandClass) {
+        foreach (self::COMMAND_HANDLERS as $handlerClass => $commandClasses) {
+            foreach ($commandClasses as $commandClass) {
                 $dispatcher->registerHandler($commandClass, new HandlerProxy(fn () => $this->get($handlerClass)));
             }
         }
@@ -105,32 +134,11 @@ class Container implements ContainerInterface
 
     private function configureProjectors(): void
     {
-        /**
- * @var EventBusInterface $eventBus
-*/
+        /** @var EventBusInterface $eventBus */
         $eventBus = $this->get(EventBusInterface::class);
-        /**
- * @var AbstractEventHandler|string $projectorClass
-*/
-        foreach (self::PROJECTORS as $projectorClass) {
-            foreach ($projectorClass::getSubscribedEvents() as $eventClass) {
+        foreach (self::PROJECTORS as $projectorClass => $eventClasses) {
+            foreach ($eventClasses as $eventClass) {
                 $eventBus->subscribe($eventClass, new EventHandlerProxy(fn () => $this->get($projectorClass)));
-            }
-        }
-    }
-
-    private function configureProcessors(): void
-    {
-        /**
- * @var EventBusInterface $eventBus
-*/
-        $eventBus = $this->get(EventBusInterface::class);
-        /**
- * @var AbstractEventHandler|string $processorClass
-*/
-        foreach (self::PROCESSORS as $processorClass) {
-            foreach ($processorClass::getSubscribedEvents() as $eventClass) {
-                $eventBus->subscribe($eventClass, new EventHandlerProxy(fn () => $this->get($processorClass)));
             }
         }
     }

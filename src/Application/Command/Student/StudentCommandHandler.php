@@ -9,18 +9,9 @@ use Demo\Domain\State\StudentRegistrationState;
 
 class StudentCommandHandler extends AbstractCommandHandler
 {
-    public static function getHandledCommands(): array
-    {
-        return [
-            RegisterStudentCommand::class,
-        ];
-    }
-
     protected function handleRegisterStudentCommand(RegisterStudentCommand $command): void
     {
-        /**
- * @var StudentRegistrationState $state
-*/
+        /** @var StudentRegistrationState $state */
         $state = $this->getRepository()->load(
             StudentRegistrationState::class,
             StudentRegistrationState::getQuery($command->studentId),

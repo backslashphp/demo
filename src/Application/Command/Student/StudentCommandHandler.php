@@ -18,7 +18,9 @@ class StudentCommandHandler extends AbstractCommandHandler
 
     protected function handleRegisterStudentCommand(RegisterStudentCommand $command): void
     {
-        /** @var StudentRegistrationState $state */
+        /**
+ * @var StudentRegistrationState $state
+*/
         $state = $this->getRepository()->load(
             StudentRegistrationState::class,
             StudentRegistrationState::getQuery($command->studentId),

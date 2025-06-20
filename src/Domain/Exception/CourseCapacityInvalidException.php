@@ -8,5 +8,4 @@ use Exception;
 
 class CourseCapacityInvalidException extends Exception
 {
-    public const string MESSAGE = 'Course capacity must be greater than 0.';
 }

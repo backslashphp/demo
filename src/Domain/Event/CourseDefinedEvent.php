@@ -21,8 +21,10 @@ readonly class CourseDefinedEvent implements EventInterface
 
     public function getIdentifiers(): Identifiers
     {
-        return new Identifiers([
+        return new Identifiers(
+            [
             'courseId' => $this->courseId,
-        ]);
+            ],
+        );
     }
 }

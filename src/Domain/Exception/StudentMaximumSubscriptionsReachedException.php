@@ -6,6 +6,6 @@ namespace Demo\Domain\Exception;
 
 use Exception;
 
-class StudentNotRegisteredException extends Exception
+class StudentMaximumSubscriptionsReachedException extends Exception
 {
 }

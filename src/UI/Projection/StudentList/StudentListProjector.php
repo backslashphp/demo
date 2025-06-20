@@ -62,7 +62,9 @@ class StudentListProjector extends AbstractEventHandler
     private function getList(): StudentListProjection
     {
         try {
-            /** @var StudentListProjection $p */
+            /**
+ * @var StudentListProjection $p
+*/
             $p = $this->projections->find(StudentListProjection::ID, StudentListProjection::class);
         } catch (ProjectionNotFoundException) {
             $p = new StudentListProjection();

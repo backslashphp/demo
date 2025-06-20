@@ -8,5 +8,4 @@ use Exception;
 
 class CourseAtFullCapacityException extends Exception
 {
-    public const string MESSAGE = 'Course is at full capacity.';
 }

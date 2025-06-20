@@ -5,39 +5,74 @@ declare(strict_types=1);
 namespace Demo\Test;
 
 use Backslash\Scenario\PublishedEvents;
+use Backslash\Scenario\UpdatedProjections;
 use Demo\Application\Command\Student\RegisterStudentCommand;
 use Demo\Domain\Event\StudentRegisteredEvent;
-use RuntimeException;
+use Demo\Domain\Exception\IdAlreadyUsedException;
+use Demo\Domain\Exception\InvalidIdException;
+use Demo\UI\Projection\StudentList\StudentListProjection;
 
 class StudentTest extends TestCase
 {
     /** @test */
-    public function register_student(): void
+    public function register_student_happy_path(): void
     {
-        $play = $this->newPlay()
-            ->dispatch(new RegisterStudentCommand('1', 'John'))
-            ->testEvents(function (PublishedEvents $events): void {
-                $this->assertPublishedEventsContainExactly([
-                    StudentRegisteredEvent::class => 1,
-                ], $events);
-            });
+        $this->scenario->play(
+            $this->newPlay()
+                ->dispatch(
+                    new RegisterStudentCommand('1', 'John'),
+                )
+                ->testEvents(function (PublishedEvents $events): void {
+                    $this->assertPublishedEventsContainExactly([
+                        StudentRegisteredEvent::class => 1,
+                    ], $events);
+                })
+                ->testProjections(function (UpdatedProjections $projections): void {
+                    $this->assertUpdatedProjectionsContainExactly([
+                        StudentListProjection::class => 1,
+                    ], $projections);
 
-        $this->scenario->play($play);
+                    /** @var StudentListProjection $studentList */
+                    $studentList = $projections->getAllOf(StudentListProjection::class)[0];
+                    $this->assertStringContainsString('John', (string) $studentList);
+                }),
+        );
     }
 
-    /** @test */
-    public function student_id_must_be_unique(): void
+    /**
+     * @test
+     * @doesNotPerformAssertions
+     */
+    public function reuse_student_id(): void
     {
-        $studentId = '1';
+        $this->scenario->play(
+            $this->newPlay()
+                ->expectException(
+                    IdAlreadyUsedException::class,
+                )
+                ->withInitialCommands(
+                    new RegisterStudentCommand('1', 'John'),
+                )
+                ->dispatch(
+                    new RegisterStudentCommand('1', 'John'),
+                ),
+        );
+    }
 
-        $play = $this->newPlay()
-            ->expectException(RuntimeException::class)
-            ->withInitialCommands(new RegisterStudentCommand($studentId, 'John'))
-            ->dispatch(new RegisterStudentCommand($studentId, 'John'))
-            ->testThat(function (): void {
-                $this->assertTrue(true);
-            });
-
-        $this->scenario->play($play);
+    /**
+     * @test
+     * @doesNotPerformAssertions
+     */
+    public function invalid_student_id(): void
+    {
+        $this->scenario->play(
+            $this->newPlay()
+                ->expectException(
+                    InvalidIdException::class,
+                )
+                ->dispatch(
+                    new RegisterStudentCommand('abc', 'John'),
+                ),
+        );
     }
 }

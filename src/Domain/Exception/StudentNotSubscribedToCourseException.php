@@ -8,5 +8,4 @@ use Exception;
 
 class StudentNotSubscribedToCourseException extends Exception
 {
-    public const string MESSAGE = 'Student is subscribed to course.';
 }

@@ -8,5 +8,4 @@ use Exception;
 
 class CourseNotDefinedException extends Exception
 {
-    public const string MESSAGE = 'Course is not defined.';
 }

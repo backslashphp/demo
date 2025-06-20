@@ -19,7 +19,9 @@ class SubscriptionCommandHandler extends AbstractCommandHandler
 
     protected function handleSubscribeStudentToCourseCommand(SubscribeStudentToCourseCommand $command): void
     {
-        /** @var CourseSubscriptionState $state */
+        /**
+ * @var CourseSubscriptionState $state
+*/
         $state = $this->getRepository()->load(
             CourseSubscriptionState::class,
             CourseSubscriptionState::getQuery($command->studentId, $command->courseId),
@@ -30,7 +32,9 @@ class SubscriptionCommandHandler extends AbstractCommandHandler
 
     protected function handleUnsubscribeStudentFromCourseCommand(UnsubscribeStudentFromCourseCommand $command): void
     {
-        /** @var CourseSubscriptionState $state */
+        /**
+ * @var CourseSubscriptionState $state
+*/
         $state = $this->getRepository()->load(
             CourseSubscriptionState::class,
             CourseSubscriptionState::getQuery($command->studentId, $command->courseId),

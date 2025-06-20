@@ -89,9 +89,13 @@ class Container implements ContainerInterface
 
     private function configureCommandHandlers(): void
     {
-        /** @var Dispatcher $dispatcher */
+        /**
+ * @var Dispatcher $dispatcher
+*/
         $dispatcher = $this->get(DispatcherInterface::class);
-        /** @var AbstractCommandHandler|string $handlerClass */
+        /**
+ * @var AbstractCommandHandler|string $handlerClass
+*/
         foreach (self::COMMAND_HANDLERS as $handlerClass) {
             foreach ($handlerClass::getHandledCommands() as $commandClass) {
                 $dispatcher->registerHandler($commandClass, new HandlerProxy(fn () => $this->get($handlerClass)));
@@ -101,9 +105,13 @@ class Container implements ContainerInterface
 
     private function configureProjectors(): void
     {
-        /** @var EventBusInterface $eventBus */
+        /**
+ * @var EventBusInterface $eventBus
+*/
         $eventBus = $this->get(EventBusInterface::class);
-        /** @var AbstractEventHandler|string $projectorClass */
+        /**
+ * @var AbstractEventHandler|string $projectorClass
+*/
         foreach (self::PROJECTORS as $projectorClass) {
             foreach ($projectorClass::getSubscribedEvents() as $eventClass) {
                 $eventBus->subscribe($eventClass, new EventHandlerProxy(fn () => $this->get($projectorClass)));
@@ -113,9 +121,13 @@ class Container implements ContainerInterface
 
     private function configureProcessors(): void
     {
-        /** @var EventBusInterface $eventBus */
+        /**
+ * @var EventBusInterface $eventBus
+*/
         $eventBus = $this->get(EventBusInterface::class);
-        /** @var AbstractEventHandler|string $processorClass */
+        /**
+ * @var AbstractEventHandler|string $processorClass
+*/
         foreach (self::PROCESSORS as $processorClass) {
             foreach ($processorClass::getSubscribedEvents() as $eventClass) {
                 $eventBus->subscribe($eventClass, new EventHandlerProxy(fn () => $this->get($processorClass)));

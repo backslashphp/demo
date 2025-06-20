@@ -5,53 +5,114 @@ declare(strict_types=1);
 namespace Demo\Test;
 
 use Backslash\Scenario\PublishedEvents;
+use Backslash\Scenario\UpdatedProjections;
 use Demo\Application\Command\Course\ChangeCourseCapacityCommand;
 use Demo\Application\Command\Course\DefineCourseCommand;
 use Demo\Domain\Event\CourseDefinedEvent;
+use Demo\Domain\Exception\CourseCapacityInvalidException;
+use Demo\Domain\Exception\CourseNotDefinedException;
+use Demo\Domain\Exception\IdAlreadyUsedException;
+use Demo\Domain\Exception\InvalidIdException;
+use Demo\UI\Projection\CourseList\CourseListProjection;
 
 class CourseTest extends TestCase
 {
     /** @test */
-    public function create_course(): void
+    public function create_course_happy_path(): void
     {
-        $play = $this->newPlay()
-            ->dispatch(new DefineCourseCommand('1', 'Maths', 10))
-            ->testEvents(function (PublishedEvents $events): void {
-                $this->assertPublishedEventsContainExactly([
-                    CourseDefinedEvent::class => 1,
-                ], $events);
-            });
-        $this->scenario->play($play);
+        $this->scenario->play(
+            $this->newPlay()
+                ->dispatch(
+                    new DefineCourseCommand('1', 'Maths', 10),
+                )
+                ->testEvents(function (PublishedEvents $events): void {
+                    $this->assertPublishedEventsContainExactly([
+                        CourseDefinedEvent::class => 1,
+                    ], $events);
+                })
+                ->testProjections(function (UpdatedProjections $projections): void {
+                    $this->assertUpdatedProjectionsContainExactly([
+                        CourseListProjection::class => 1,
+                    ], $projections);
+
+                    /** @var CourseListProjection $courseList */
+                    $courseList = $projections->getAllOf(CourseListProjection::class)[0];
+                    $this->assertStringContainsString('Maths', (string) $courseList);
+                }),
+        );
     }
 
-    /** @test */
-    public function course_id_must_be_unique(): void
+    /**
+     * @test
+     * @doesNotPerformAssertions
+     */
+    public function reuse_course_id(): void
     {
-        $courseId = '1';
-
-        $play = $this->newPlay()
-            ->expectExceptionMessage('ID already used.')
-            ->withInitialCommands(new DefineCourseCommand($courseId, 'Maths', 10))
-            ->dispatch(new DefineCourseCommand($courseId, 'Maths', 10))
-            ->testThat(function (): void {
-                $this->assertTrue(true);
-            });
-        $this->scenario->play($play);
+        $this->scenario->play(
+            $this->newPlay()
+                ->expectException(
+                    IdAlreadyUsedException::class,
+                )
+                ->withInitialCommands(
+                    new DefineCourseCommand('1', 'Maths', 10),
+                )
+                ->dispatch(
+                    new DefineCourseCommand('1', 'Maths', 10),
+                ),
+        );
     }
 
-    /** @test */
-    public function capacity_must_be_greater_than_zero(): void
+    /**
+     * @test
+     * @doesNotPerformAssertions
+     */
+    public function invalid_course_id(): void
     {
-        $courseId = '1';
+        $this->scenario->play(
+            $this->newPlay()
+                ->expectException(
+                    InvalidIdException::class,
+                )
+                ->dispatch(
+                    new DefineCourseCommand('abc', 'Maths', 10),
+                ),
+        );
+    }
 
-        $play = $this->newPlay()
-            ->expectExceptionMessage('Capacity must be greater than 0.')
-            ->withInitialCommands(new DefineCourseCommand($courseId, 'Maths', 10))
-            ->dispatch(new ChangeCourseCapacityCommand($courseId, -5))
-            ->testThat(function (): void {
-                $this->assertTrue(true);
-            });
+    /**
+     * @test
+     * @doesNotPerformAssertions
+     */
+    public function change_to_invalid_capacity(): void
+    {
+        $this->scenario->play(
+            $this->newPlay()
+                ->expectException(
+                    CourseCapacityInvalidException::class,
+                )
+                ->withInitialCommands(
+                    new DefineCourseCommand('1', 'Maths', 10),
+                )
+                ->dispatch(
+                    new ChangeCourseCapacityCommand('1', -5),
+                ),
+        );
+    }
 
-        $this->scenario->play($play);
+    /**
+     * @test
+     * @doesNotPerformAssertions
+     */
+    public function change_capacity_of_undefined_course(): void
+    {
+        $this->scenario->play(
+            $this->newPlay()
+                ->expectException(
+                    CourseNotDefinedException::class,
+                )
+                ->dispatch(
+                    new ChangeCourseCapacityCommand('1', 10),
+                ),
+        );
     }
 }

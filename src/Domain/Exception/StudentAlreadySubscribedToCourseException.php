@@ -8,5 +8,4 @@ use Exception;
 
 class StudentAlreadySubscribedToCourseException extends Exception
 {
-    public const string MESSAGE = 'Student is already subscribed to course.';
 }

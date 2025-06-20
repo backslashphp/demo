@@ -8,5 +8,4 @@ use Exception;
 
 class InvalidIdException extends Exception
 {
-    public const string MESSAGE = 'ID must be a number.';
 }

@@ -8,5 +8,4 @@ use Exception;
 
 class IdAlreadyUsedException extends Exception
 {
-    public const string MESSAGE = 'ID already used.';
 }

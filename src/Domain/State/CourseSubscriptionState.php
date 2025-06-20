@@ -16,7 +16,7 @@ use Demo\Domain\Event\StudentUnsubscribedFromCourseEvent;
 use Demo\Domain\Exception\CourseAtFullCapacityException;
 use Demo\Domain\Exception\CourseNotDefinedException;
 use Demo\Domain\Exception\StudentAlreadySubscribedToCourseException;
-use Demo\Domain\Exception\StudentMaximumSubsciptionsReachedException;
+use Demo\Domain\Exception\StudentMaximumSubscriptionsReachedException;
 use Demo\Domain\Exception\StudentNotRegisteredException;
 use Demo\Domain\Exception\StudentNotSubscribedToCourseException;
 
@@ -145,7 +145,7 @@ class CourseSubscriptionState extends AbstractState
     private function assertStudentHasNotReachedMaxSubscriptionCount(): void
     {
         if (count($this->studentSubscriptions) >= 3) {
-            throw new StudentMaximumSubsciptionsReachedException();
+            throw new StudentMaximumSubscriptionsReachedException();
         }
     }
 

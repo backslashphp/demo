@@ -20,8 +20,10 @@ readonly class StudentRegisteredEvent implements EventInterface
 
     public function getIdentifiers(): Identifiers
     {
-        return new Identifiers([
+        return new Identifiers(
+            [
             'studentId' => $this->studentId,
-        ]);
+            ],
+        );
     }
 }

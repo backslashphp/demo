@@ -21,7 +21,9 @@ class CourseCommandHandler extends AbstractCommandHandler
 
     protected function handleChangeCourseCapacityCommand(ChangeCourseCapacityCommand $command): void
     {
-        /** @var CourseCapacityState $state */
+        /**
+ * @var CourseCapacityState $state
+*/
         $state = $this->getRepository()->load(
             CourseCapacityState::class,
             CourseCapacityState::getQuery($command->courseId),
@@ -32,7 +34,9 @@ class CourseCommandHandler extends AbstractCommandHandler
 
     protected function handleDefineCourseCommand(DefineCourseCommand $command): void
     {
-        /** @var CourseDefinitionState $state */
+        /**
+ * @var CourseDefinitionState $state
+*/
         $state = $this->getRepository()->load(
             CourseDefinitionState::class,
             CourseDefinitionState::getQuery($command->courseId),

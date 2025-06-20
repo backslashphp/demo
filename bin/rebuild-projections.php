@@ -43,5 +43,3 @@ $eventStore->inspect($inspector);
 /** @var ProjectionStoreInterface $projections */
 $projections = $container->get(ProjectionStoreInterface::class);
 $projections->commit();
-
-echo 'PROJECTIONS REBUILT SUCCESSFULLY' . PHP_EOL;

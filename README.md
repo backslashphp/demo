@@ -10,13 +10,10 @@ simplicity in learning, without using any additional libraries.
 
 Featured Backslash components are:
 
-- State and domain events
-- Commands and command dispatcher
-- Projectors and projections
-- Projection rebuilding
-- Stream enrichment
-- Testing scenarios
-- Middlewares
+- Domain events and states
+- Commands and command handlers
+- Projections
+- Test scenarios
 
 ## Domain rules
 
@@ -25,7 +22,7 @@ the Dynamic Consistency Boundary website.
 
 - A course cannot accept more students than its capacity.
 - The course capacity can change at any time to any positive integer different from the current one.
-- A student cannot join more than 3 courses.
+- A student cannot subscribe to more than 3 courses.
 
 ## Getting started
 
@@ -45,6 +42,29 @@ php demo.php
 It initializes the SQLite database in `data/demo.sqlite` where events and projections are persisted. It also runs some
 commands to create students and courses.
 
+```
+----- STUDENTS -----
+[1] John (Biology)
+[2] Mary (Arts, Physics)
+[3] Bill (Physics)
+[4] James
+[5] Lucy
+[6] Brad
+[7] Kelly
+[8] Alice
+
+----- COURSES -----
+[1] Algebra (0/5)
+[2] Biology (1/4)
+    - John
+[3] Arts (1/3)
+    - Mary
+[4] Physics (2/3)
+    - Mary
+    - Bill
+[5] Grammar (0/4)
+```
+
 As you play with the app, you may open the SQLite database in your favourite IDE to inspect its content.
 
 ## Usage
@@ -54,104 +74,84 @@ As you play with the app, you may open the SQLite database in your favourite IDE
 ### Register a student
 
 ```sh
-php register-student.php
+php register-student.php --id=123 --name=Max
 ```
-
-**--id**: The student ID (integer)  
-**--name**: The student name
 
 ### Create a course
 
 ```sh
-php define-course.php
+php define-course.php --id=1000 --name=Geology --capacity=10
 ```
-
-**--id**: The student ID (integer)  
-**--name**: The course name  
-**--capacity**: How many students can enroll in this course (integer)
 
 ### Change course capacity
 
 ```sh
-php define-course.php
+php change-course-capacity.php --id=1000 --capacity=15
 ```
 
-**--id**: The course ID (integer)  
-**--capacity**: The new capacity (integer)
-
-### Open enrollment period
-
-Enrollment period must be open for student to enroll in courses.
+### Subscribe a student to a course
 
 ```sh
-php open-enrollment-period.php
+php subscribe.php --student=123 --course=1000
 ```
 
-### Close enrollment period
+### Unsubscribe a student from a course
 
 ```sh
-php close-enrollment-period.php
+php unsubscribe.php --student=123 --course=1000
 ```
-
-### Enroll a student in a course
-
-```sh
-php enroll.php
-```
-
-**--student**: The student ID (integer)  
-**--course**: The course ID (integer)
-
-### Withdraw a student from a course
-
-```sh
-php withdraw.php
-```
-
-**--student**: The student ID (integer)  
-**--course**: The course ID (integer)
-
-### Cancel a course
-
-Students enrolled in this course will be withdrawn.
-
-```sh
-php cancel-course.php
-```
-
-**--id**: The course ID (integer)
 
 ## Management scripts
 
-### Show the content of event store
+### List events persisted in the event store
 
 ```sh
 php events.php
 ```
 
-### Delete events and projections
-
-```sh
-php reset.php
 ```
+| #  | UID                                  | CLASS                                            | PAYLOAD                                        | IDENTIFIERS                      | METADATA                                                  | TIMESTAMP                        |
+| 1  | 9ffd43a3-dee5-4caa-9d91-6e29c8ae3fd9 | Demo\Domain\Event\StudentRegisteredEvent         | {"studentId":"1","name":"John"}                | {"studentId":"1"}                | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.638777+00:00 |
+| 2  | 33a197d5-a8cc-4ef6-b9be-f63608af5fd0 | Demo\Domain\Event\StudentRegisteredEvent         | {"studentId":"2","name":"Mary"}                | {"studentId":"2"}                | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.654526+00:00 |
+| 3  | 8784f39f-f1bd-472f-a543-426ba4f3ac2e | Demo\Domain\Event\StudentRegisteredEvent         | {"studentId":"3","name":"Bill"}                | {"studentId":"3"}                | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.667294+00:00 |
+| 4  | 231aa070-03bb-43aa-9482-e00052ae1780 | Demo\Domain\Event\StudentRegisteredEvent         | {"studentId":"4","name":"James"}               | {"studentId":"4"}                | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.687732+00:00 |
+| 5  | 9a1fe35d-afe7-4fe9-ae61-213da79326e2 | Demo\Domain\Event\StudentRegisteredEvent         | {"studentId":"5","name":"Lucy"}                | {"studentId":"5"}                | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.702003+00:00 |
+| 6  | c99af1e6-4d9d-4042-955c-567ddae78219 | Demo\Domain\Event\StudentRegisteredEvent         | {"studentId":"6","name":"Brad"}                | {"studentId":"6"}                | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.718004+00:00 |
+| 7  | 3404d47e-25f0-48db-bab2-199feb13880e | Demo\Domain\Event\StudentRegisteredEvent         | {"studentId":"7","name":"Kelly"}               | {"studentId":"7"}                | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.734666+00:00 |
+| 8  | 4770359c-0a0f-4872-971e-134ea2fdc4cb | Demo\Domain\Event\StudentRegisteredEvent         | {"studentId":"8","name":"Alice"}               | {"studentId":"8"}                | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.750996+00:00 |
+| 9  | aa16a7c9-8902-4e91-92da-ef9803e00c63 | Demo\Domain\Event\CourseDefinedEvent             | {"courseId":"1","name":"Algebra","capacity":5} | {"courseId":"1"}                 | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.767753+00:00 |
+| 10 | 776f7f2d-591b-4c2f-86af-e595b8e86a9e | Demo\Domain\Event\CourseDefinedEvent             | {"courseId":"2","name":"Biology","capacity":4} | {"courseId":"2"}                 | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.783081+00:00 |
 
-### Restart demo
-
-```sh
-php demo.php
+...
 ```
 
 ## Rebuild projections
 
-This script deletes all projections and rebuilds them by replaying events.
+This script deletes all stored projections and rebuilds them by replaying events.
 
 ```bash
 php rebuild-projections.php
 ```
 
+```
+No:                 1
+Event:              Demo\Domain\Event\StudentRegisteredEvent
+Timestamp:          2025-06-20T02:38:32.082613+00:00
+
+No:                 2
+Event:              Demo\Domain\Event\StudentRegisteredEvent
+Timestamp:          2025-06-20T02:38:32.098321+00:00
+
+No:                 3
+Event:              Demo\Domain\Event\StudentRegisteredEvent
+Timestamp:          2025-06-20T02:38:32.110229+00:00
+
+...
+```
+
 ## Testing
 
-Some tests can be found in the `tests` folder. They use on the `Scenario` component.
+Test scenarios can be found in the `tests` folder.
 
 ```bash
 vendor/bin/phpunit

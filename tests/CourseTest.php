@@ -99,6 +99,23 @@ class CourseTest extends TestCase
         );
     }
 
+    /** @test */
+    public function change_to_same_capacity(): void
+    {
+        $this->scenario->play(
+            $this->newPlay()
+                ->withInitialCommands(
+                    new DefineCourseCommand('1', 'Maths', 10),
+                )
+                ->dispatch(
+                    new ChangeCourseCapacityCommand('1', 10),
+                )
+                ->testEvents(function (PublishedEvents $events): void {
+                    $this->assertPublishedEventsDoNotContain(CourseDefinedEvent::class, $events);
+                }),
+        );
+    }
+
     /**
      * @test
      * @doesNotPerformAssertions

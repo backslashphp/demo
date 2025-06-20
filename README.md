@@ -40,7 +40,9 @@ php demo.php
 ```
 
 It initializes the SQLite database in `data/demo.sqlite` where events and projections are persisted. It also runs some
-commands to create students and courses.
+commands to create some demo data.
+
+The script outputs projections of students, courses and current subscriptions.
 
 ```
 ----- STUDENTS -----
@@ -102,6 +104,12 @@ php subscribe.php --student=123 --course=1000
 
 ```sh
 php unsubscribe.php --student=123 --course=1000
+```
+
+### Output the current state of the system
+
+```sh
+php show.php
 ```
 
 ## Management scripts

@@ -39,7 +39,7 @@ cd bin
 php demo.php
 ```
 
-It initializes the SQLite database in `data/demo.sqlite` where events and projections are persisted. It also runs some
+It initializes the SQLite database in `data/demo.sqlite` where events and projections are persisted. It also runs
 commands to create some demo data.
 
 The script outputs projections of students, courses and current subscriptions.
@@ -67,7 +67,7 @@ The script outputs projections of students, courses and current subscriptions.
 [5] Grammar (0/4)
 ```
 
-As you play with the app, you may open the SQLite database in your favourite IDE to inspect its content.
+As you play with the scripts, you may open the SQLite database in your favourite IDE to inspect its content.
 
 To understand how all parts of the application are connected, take a look
 at [src/Infrastructure/Container.php](https://github.com/backslashphp/demo/blob/2.x/src/Infrastructure/Container.php).
@@ -136,7 +136,7 @@ php events.php
 ...
 ```
 
-## Rebuild projections
+### Rebuild projections
 
 This script deletes all stored projections and rebuilds them by replaying events.
 

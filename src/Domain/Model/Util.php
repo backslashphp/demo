@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Demo\Domain\State;
+namespace Demo\Domain\Model;
 
 class Util
 {

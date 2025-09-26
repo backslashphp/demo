@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Demo\Domain\State;
+namespace Demo\Domain\Model;
 
-use Backslash\Domain\AbstractState;
+use Backslash\Model\AbstractModel;
 use Backslash\EventStore\Query\EventClass;
 use Backslash\EventStore\Query\Identifier;
 use Backslash\EventStore\Query\QueryInterface;
@@ -20,7 +20,7 @@ use Demo\Domain\Exception\StudentMaximumSubscriptionsReachedException;
 use Demo\Domain\Exception\StudentNotRegisteredException;
 use Demo\Domain\Exception\StudentNotSubscribedToCourseException;
 
-class CourseSubscriptionState extends AbstractState
+class CourseSubscriptionModel extends AbstractModel
 {
     private ?string $courseId = null;
 
@@ -36,7 +36,7 @@ class CourseSubscriptionState extends AbstractState
 
     private array $studentSubscriptions = [];
 
-    public static function getQuery(string $studentId, string $courseId): QueryInterface
+    public static function buildQuery(string $studentId, string $courseId): QueryInterface
     {
         $eventForThisCourseLifecycle = EventClass::in(
             CourseCapacityChangedEvent::class,
@@ -71,7 +71,7 @@ class CourseSubscriptionState extends AbstractState
         $this->assertCourseIsNotAtFullCapacity();
         $this->assertStudentHasNotReachedMaxSubscriptionCount();
 
-        $this->apply(new StudentSubscribedToCourseEvent($studentId, $courseId));
+        $this->record(new StudentSubscribedToCourseEvent($studentId, $courseId));
     }
 
     public function unsubscribe(string $studentId, string $courseId): void
@@ -80,7 +80,7 @@ class CourseSubscriptionState extends AbstractState
         $this->assertStudentIsRegistered();
         $this->assertStudentIsSubscribedToCourse();
 
-        $this->apply(new StudentUnsubscribedFromCourseEvent($studentId, $courseId));
+        $this->record(new StudentUnsubscribedFromCourseEvent($studentId, $courseId));
     }
 
     protected function applyCourseDefinedEvent(CourseDefinedEvent $event): void

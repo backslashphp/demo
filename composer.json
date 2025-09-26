@@ -3,7 +3,7 @@
         "php": "^8.2",
         "ext-json": "*",
         "ext-pdo": "*",
-        "backslashphp/backslash": "^2",
+        "backslashphp/backslash": "2.x-dev",
         "psr/container": "^2",
         "ramsey/uuid": "^4"
     },

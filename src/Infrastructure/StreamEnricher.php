@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Demo\Infrastructure;
 
-use Backslash\Domain\RecordedEventStream;
+use Backslash\Event\RecordedEventStream;
 use Backslash\StreamEnricher\StreamEnricherInterface;
 
 class StreamEnricher implements StreamEnricherInterface

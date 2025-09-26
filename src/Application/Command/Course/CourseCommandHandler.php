@@ -5,30 +5,30 @@ declare(strict_types=1);
 namespace Demo\Application\Command\Course;
 
 use Demo\Application\Command\AbstractCommandHandler;
-use Demo\Domain\State\CourseCapacityState;
-use Demo\Domain\State\CourseDefinitionState;
+use Demo\Domain\Model\CourseCapacityModel;
+use Demo\Domain\Model\CourseDefinitionModel;
 
 class CourseCommandHandler extends AbstractCommandHandler
 {
     protected function handleChangeCourseCapacityCommand(ChangeCourseCapacityCommand $command): void
     {
-        /** @var CourseCapacityState $state */
-        $state = $this->getRepository()->load(
-            CourseCapacityState::class,
-            CourseCapacityState::getQuery($command->courseId),
+        /** @var CourseCapacityModel $model */
+        $model = $this->getRepository()->loadModel(
+            CourseCapacityModel::class,
+            CourseCapacityModel::buildQuery($command->courseId),
         );
-        $state->change($command->courseId, $command->capacity);
-        $this->getRepository()->store($state);
+        $model->change($command->courseId, $command->capacity);
+        $this->getRepository()->storeChanges($model);
     }
 
     protected function handleDefineCourseCommand(DefineCourseCommand $command): void
     {
-        /** @var CourseDefinitionState $state */
-        $state = $this->getRepository()->load(
-            CourseDefinitionState::class,
-            CourseDefinitionState::getQuery($command->courseId),
+        /** @var CourseDefinitionModel $model */
+        $model = $this->getRepository()->loadModel(
+            CourseDefinitionModel::class,
+            CourseDefinitionModel::buildQuery($command->courseId),
         );
-        $state->define($command->courseId, $command->name, $command->capacity);
-        $this->getRepository()->store($state);
+        $model->define($command->courseId, $command->name, $command->capacity);
+        $this->getRepository()->storeChanges($model);
     }
 }

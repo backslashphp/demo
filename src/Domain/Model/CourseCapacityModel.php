@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Demo\Domain\State;
+namespace Demo\Domain\Model;
 
-use Backslash\Domain\AbstractState;
+use Backslash\Model\AbstractModel;
 use Backslash\EventStore\Query\EventClass;
 use Backslash\EventStore\Query\Identifier;
 use Backslash\EventStore\Query\QueryInterface;
@@ -13,13 +13,13 @@ use Demo\Domain\Event\CourseDefinedEvent;
 use Demo\Domain\Exception\CourseCapacityInvalidException;
 use Demo\Domain\Exception\CourseNotDefinedException;
 
-class CourseCapacityState extends AbstractState
+class CourseCapacityModel extends AbstractModel
 {
     private int $capacity = 0;
 
     private bool $courseDefined = false;
 
-    public static function getQuery(string $courseId): QueryInterface
+    public static function buildQuery(string $courseId): QueryInterface
     {
         return EventClass::in(
             CourseCapacityChangedEvent::class,
@@ -35,7 +35,7 @@ class CourseCapacityState extends AbstractState
         if ($newCapacity <= 0) {
             throw new CourseCapacityInvalidException();
         }
-        $this->apply(new CourseCapacityChangedEvent($courseId, $this->capacity, $newCapacity));
+        $this->record(new CourseCapacityChangedEvent($courseId, $this->capacity, $newCapacity));
     }
 
     protected function applyCourseCapacityChangedEvent(CourseCapacityChangedEvent $event): void

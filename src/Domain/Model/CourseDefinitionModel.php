@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Demo\Domain\State;
+namespace Demo\Domain\Model;
 
-use Backslash\Domain\AbstractState;
+use Backslash\Model\AbstractModel;
 use Backslash\EventStore\Query\EventClass;
 use Backslash\EventStore\Query\Identifier;
 use Backslash\EventStore\Query\QueryInterface;
@@ -13,11 +13,11 @@ use Demo\Domain\Exception\CourseCapacityInvalidException;
 use Demo\Domain\Exception\IdAlreadyUsedException;
 use Demo\Domain\Exception\InvalidIdException;
 
-class CourseDefinitionState extends AbstractState
+class CourseDefinitionModel extends AbstractModel
 {
     private bool $courseExists = false;
 
-    public static function getQuery(string $courseId): QueryInterface
+    public static function buildQuery(string $courseId): QueryInterface
     {
         return EventClass::is(CourseDefinedEvent::class)
             ->and(Identifier::is('courseId', $courseId));
@@ -34,7 +34,7 @@ class CourseDefinitionState extends AbstractState
         if ($capacity <= 0) {
             throw new CourseCapacityInvalidException();
         }
-        $this->apply(new CourseDefinedEvent($courseId, $name, $capacity));
+        $this->record(new CourseDefinedEvent($courseId, $name, $capacity));
     }
 
     protected function applyCourseDefinedEvent(CourseDefinedEvent $event): void

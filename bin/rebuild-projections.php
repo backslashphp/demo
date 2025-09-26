@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Backslash\CommandDispatcher\DispatcherInterface;
-use Backslash\Domain\RecordedEvent;
+use Backslash\Event\RecordedEvent;
 use Backslash\EventBus\EventBusInterface;
 use Backslash\EventStore\EventStoreInterface;
 use Backslash\ProjectionStore\ProjectionStoreInterface;

@@ -31,7 +31,7 @@ class ExitOnErrorCommandDispatcherMiddleware implements MiddlewareInterface
         try {
             $next->dispatch($command);
         } catch (Throwable $t) {
-            $message = match($t::class) {
+            $message = match ($t::class) {
                 CourseAtFullCapacityException::class => 'Course is at full capacity.',
                 CourseCapacityInvalidException::class => 'Capacity must be an integer greater than 0.',
                 CourseNotDefinedException::class => 'Unknown course.',

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Demo\Domain\State;
+namespace Demo\Domain\Model;
 
-use Backslash\Domain\AbstractState;
+use Backslash\Model\AbstractModel;
 use Backslash\EventStore\Query\EventClass;
 use Backslash\EventStore\Query\Identifier;
 use Backslash\EventStore\Query\QueryInterface;
@@ -12,11 +12,11 @@ use Demo\Domain\Event\StudentRegisteredEvent;
 use Demo\Domain\Exception\IdAlreadyUsedException;
 use Demo\Domain\Exception\InvalidIdException;
 
-class StudentRegistrationState extends AbstractState
+class StudentRegistrationModel extends AbstractModel
 {
     private bool $registered = false;
 
-    public static function getQuery(string $studentId): QueryInterface
+    public static function buildQuery(string $studentId): QueryInterface
     {
         return EventClass::is(StudentRegisteredEvent::class)
             ->and(
@@ -32,7 +32,7 @@ class StudentRegistrationState extends AbstractState
         if (!Util::isNumber($studentId)) {
             throw new InvalidIdException();
         }
-        $this->apply(new StudentRegisteredEvent($studentId, $name));
+        $this->record(new StudentRegisteredEvent($studentId, $name));
     }
 
     protected function applyStudentRegisteredEvent(StudentRegisteredEvent $event): void

@@ -59,27 +59,6 @@ use Ramsey\Uuid\Uuid;
 
 class Container implements ContainerInterface
 {
-    private const COMMAND_HANDLERS = [
-        CourseCommandHandler::class => [
-            ChangeCourseCapacityCommand::class,
-            DefineCourseCommand::class,
-        ],
-        StudentCommandHandler::class => [
-            RegisterStudentCommand::class,
-        ],
-        SubscriptionCommandHandler::class => [
-            SubscribeStudentToCourseCommand::class,
-            UnsubscribeStudentFromCourseCommand::class,
-        ],
-        SystemCommandHandler::class => [
-            CreateDatabaseCommand::class,
-            InitializeProjectionsCommand::class,
-            PurgeEventsCommand::class,
-            PurgeProjectionsCommand::class,
-            ResetCommand::class,
-        ],
-    ];
-
     private const PROJECTORS = [
         CourseListProjector::class => [
             CourseCapacityChangedEvent::class,
@@ -100,7 +79,6 @@ class Container implements ContainerInterface
 
     public function __construct()
     {
-        $this->configureCommandHandlers();
         $this->configureProjectors();
     }
 
@@ -119,17 +97,6 @@ class Container implements ContainerInterface
     public function has(string $id): bool
     {
         return isset($this->getServices()[$id]);
-    }
-
-    private function configureCommandHandlers(): void
-    {
-        /** @var Dispatcher $dispatcher */
-        $dispatcher = $this->get(DispatcherInterface::class);
-        foreach (self::COMMAND_HANDLERS as $handlerClass => $commandClasses) {
-            foreach ($commandClasses as $commandClass) {
-                $dispatcher->registerHandler($commandClass, new HandlerProxy(fn () => $this->get($handlerClass)));
-            }
-        }
     }
 
     private function configureProjectors(): void

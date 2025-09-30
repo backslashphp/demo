@@ -17,7 +17,7 @@ class CourseCommandHandler extends AbstractCommandHandler
             CourseCapacityModel::class,
             CourseCapacityModel::buildQuery($command->courseId),
         );
-        $model->change($command->courseId, $command->capacity);
+        $model->change($command->capacity);
         $this->getRepository()->storeChanges($model);
     }
 

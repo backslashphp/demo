@@ -15,9 +15,9 @@ use Demo\Domain\Exception\CourseNotDefinedException;
 
 class CourseCapacityModel extends AbstractModel
 {
-    private int $capacity = 0;
+    private ?string $courseId = null;
 
-    private bool $courseDefined = false;
+    private int $capacity = 0;
 
     public static function buildQuery(string $courseId): QueryInterface
     {
@@ -27,15 +27,15 @@ class CourseCapacityModel extends AbstractModel
         )->and(Identifier::is('courseId', $courseId));
     }
 
-    public function change(string $courseId, int $newCapacity): void
+    public function change(int $newCapacity): void
     {
-        if (!$this->courseDefined) {
+        if (is_null($this->courseId)) {
             throw new CourseNotDefinedException();
         }
         if ($newCapacity <= 0) {
             throw new CourseCapacityInvalidException();
         }
-        $this->record(new CourseCapacityChangedEvent($courseId, $this->capacity, $newCapacity));
+        $this->record(new CourseCapacityChangedEvent($this->courseId, $this->capacity, $newCapacity));
     }
 
     protected function applyCourseCapacityChangedEvent(CourseCapacityChangedEvent $event): void
@@ -45,7 +45,7 @@ class CourseCapacityModel extends AbstractModel
 
     protected function applyCourseDefinedEvent(CourseDefinedEvent $event): void
     {
+        $this->courseId = $event->courseId;
         $this->capacity = $event->capacity;
-        $this->courseDefined = true;
     }
 }

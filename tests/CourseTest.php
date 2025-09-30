@@ -8,6 +8,7 @@ use Backslash\Scenario\PublishedEvents;
 use Backslash\Scenario\UpdatedProjections;
 use Demo\Application\Command\Course\ChangeCourseCapacityCommand;
 use Demo\Application\Command\Course\DefineCourseCommand;
+use Demo\Domain\Event\CourseCapacityChangedEvent;
 use Demo\Domain\Event\CourseDefinedEvent;
 use Demo\Domain\Exception\CourseCapacityInvalidException;
 use Demo\Domain\Exception\CourseNotDefinedException;
@@ -111,7 +112,7 @@ class CourseTest extends TestCase
                     new ChangeCourseCapacityCommand('1', 10),
                 )
                 ->testEvents(function (PublishedEvents $events): void {
-                    $this->assertPublishedEventsDoNotContain(CourseDefinedEvent::class, $events);
+                    $this->assertPublishedEventsDoNotContain(CourseCapacityChangedEvent::class, $events);
                 }),
         );
     }

@@ -35,6 +35,9 @@ class CourseCapacityModel extends AbstractModel
         if ($newCapacity <= 0) {
             throw new CourseCapacityInvalidException();
         }
+        if ($newCapacity === $this->capacity) {
+            return;
+        }
         $this->record(new CourseCapacityChangedEvent($this->courseId, $this->capacity, $newCapacity));
     }
 

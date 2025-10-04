@@ -6,6 +6,7 @@ namespace Demo\Test;
 
 use Backslash\CommandDispatcher\DispatcherInterface;
 use Backslash\EventBus\EventBusInterface;
+use Backslash\EventStore\EventStoreInterface;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
 use Backslash\Scenario\AssertionsTrait;
 use Backslash\Scenario\Play;
@@ -41,6 +42,7 @@ class TestCase extends PHPUnitTestCase
             $this->container->get(EventBusInterface::class),
             $this->container->get(DispatcherInterface::class),
             $this->container->get(ProjectionStoreInterface::class),
+            $this->container->get(EventStoreInterface::class),
         );
     }
 

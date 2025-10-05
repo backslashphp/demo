@@ -32,6 +32,7 @@ $enricher->disable();
 $count = 0;
 $inspector = new Inspector(
     $eventBus,
+    null,
     function (RecordedEvent $recordedEvent) use (&$count): void {
         echo str_pad('No:', 20) . ++$count . PHP_EOL;
         echo str_pad('Event:', 20) . $recordedEvent->getEvent()::class . PHP_EOL;

@@ -11,8 +11,8 @@ use Backslash\ProjectionStore\ProjectionStoreInterface;
 use Backslash\Scenario\AssertionsTrait;
 use Backslash\Scenario\Play;
 use Backslash\Scenario\Scenario;
-use Demo\Application\Command\System\ResetCommand;
 use Demo\Infrastructure\ExitOnErrorCommandDispatcherMiddleware;
+use Demo\Infrastructure\System\ResetCommand;
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 use Psr\Container\ContainerInterface;
 

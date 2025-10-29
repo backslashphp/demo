@@ -6,15 +6,15 @@ namespace Demo\Infrastructure;
 
 use Backslash\CommandDispatcher\DispatcherInterface;
 use Backslash\CommandDispatcher\MiddlewareInterface;
-use Demo\Domain\Exception\CourseAtFullCapacityException;
-use Demo\Domain\Exception\CourseCapacityInvalidException;
-use Demo\Domain\Exception\CourseNotDefinedException;
-use Demo\Domain\Exception\IdAlreadyUsedException;
-use Demo\Domain\Exception\InvalidIdException;
-use Demo\Domain\Exception\StudentAlreadySubscribedToCourseException;
-use Demo\Domain\Exception\StudentMaximumSubscriptionsReachedException;
-use Demo\Domain\Exception\StudentNotRegisteredException;
-use Demo\Domain\Exception\StudentNotSubscribedToCourseException;
+use Demo\Feature\CourseCapacity\Exception\InvalidCourseCapacityException;
+use Demo\Feature\CourseCreation\Exception\CourseNotDefinedException;
+use Demo\Feature\CourseCreation\Exception\CourseIdAlreadyUsedException;
+use Demo\Feature\CourseCreation\Exception\InvalidCourseIdException;
+use Demo\Feature\CourseSubscription\Exception\CourseAtFullCapacityException;
+use Demo\Feature\CourseSubscription\Exception\StudentAlreadySubscribedToCourseException;
+use Demo\Feature\CourseSubscription\Exception\StudentMaximumSubscriptionsReachedException;
+use Demo\Feature\CourseSubscription\Exception\StudentNotSubscribedToCourseException;
+use Demo\Feature\StudentRegistration\Exception\StudentNotRegisteredException;
 use Throwable;
 
 class ExitOnErrorCommandDispatcherMiddleware implements MiddlewareInterface
@@ -33,10 +33,10 @@ class ExitOnErrorCommandDispatcherMiddleware implements MiddlewareInterface
         } catch (Throwable $t) {
             $message = match ($t::class) {
                 CourseAtFullCapacityException::class => 'Course is at full capacity.',
-                CourseCapacityInvalidException::class => 'Capacity must be an integer greater than 0.',
+                CourseIdAlreadyUsedException::class => 'ID is already used.',
                 CourseNotDefinedException::class => 'Unknown course.',
-                IdAlreadyUsedException::class => 'ID is already used.',
-                InvalidIdException::class => 'ID must be an integer.',
+                InvalidCourseCapacityException::class => 'Capacity must be an integer greater than 0.',
+                InvalidCourseIdException::class => 'ID must be an integer.',
                 StudentAlreadySubscribedToCourseException::class => 'Student is already subscribed to course.',
                 StudentMaximumSubscriptionsReachedException::class => 'Student cannot subscribe to more than 3 courses.',
                 StudentNotRegisteredException::class => 'Unknown student.',

@@ -8,11 +8,11 @@ use Backslash\EventBus\EventHandlerInterface;
 use Backslash\EventBus\EventHandlerTrait;
 use Backslash\ProjectionStore\ProjectionNotFoundException;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
-use Demo\Domain\Event\CourseCapacityChangedEvent;
-use Demo\Domain\Event\CourseDefinedEvent;
-use Demo\Domain\Event\StudentRegisteredEvent;
-use Demo\Domain\Event\StudentSubscribedToCourseEvent;
-use Demo\Domain\Event\StudentUnsubscribedFromCourseEvent;
+use Demo\Feature\CourseCapacity\Event\CourseCapacityChangedEvent;
+use Demo\Feature\CourseCreation\Event\CourseDefinedEvent;
+use Demo\Feature\CourseSubscription\Event\StudentSubscribedToCourseEvent;
+use Demo\Feature\CourseSubscription\Event\StudentUnsubscribedFromCourseEvent;
+use Demo\Feature\StudentRegistration\Event\StudentRegisteredEvent;
 
 class CourseListProjector implements EventHandlerInterface
 {

@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use Backslash\CommandDispatcher\DispatcherInterface;
-use Demo\Application\Command\Course\DefineCourseCommand;
-use Demo\Application\Command\Student\RegisterStudentCommand;
-use Demo\Application\Command\Subscription\SubscribeStudentToCourseCommand;
-use Demo\Application\Command\System\ResetCommand;
+use Demo\Feature\CourseCreation\Command\DefineCourseCommand;
+use Demo\Feature\CourseSubscription\Command\SubscribeStudentToCourseCommand;
+use Demo\Feature\StudentRegistration\Command\RegisterStudentCommand;
+use Demo\Infrastructure\System\ResetCommand;
 use Psr\Container\ContainerInterface;
 
 /** @var ContainerInterface $container */

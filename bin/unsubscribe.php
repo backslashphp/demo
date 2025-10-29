@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Backslash\CommandDispatcher\DispatcherInterface;
-use Demo\Application\Command\Subscription\UnsubscribeStudentFromCourseCommand;
+use Demo\Feature\CourseSubscription\Command\UnsubscribeStudentFromCourseCommand;
 use Demo\UI\Args;
 use Psr\Container\ContainerInterface;
 

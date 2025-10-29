@@ -32,25 +32,26 @@ use Backslash\Serializer\Serializer;
 use Backslash\StreamEnricher\StreamEnricherEventBusMiddleware;
 use Backslash\StreamEnricher\StreamEnricherEventStoreMiddleware;
 use Backslash\StreamEnricher\StreamEnricherInterface;
-use Demo\Application\Command\Course\ChangeCourseCapacityCommand;
-use Demo\Application\Command\Course\CourseCommandHandler;
-use Demo\Application\Command\Course\DefineCourseCommand;
-use Demo\Application\Command\Student\RegisterStudentCommand;
-use Demo\Application\Command\Subscription\SubscribeStudentToCourseCommand;
-use Demo\Application\Command\Subscription\SubscriptionCommandHandler;
-use Demo\Application\Command\Student\StudentCommandHandler;
-use Demo\Application\Command\Subscription\UnsubscribeStudentFromCourseCommand;
-use Demo\Application\Command\System\CreateDatabaseCommand;
-use Demo\Application\Command\System\InitializeProjectionsCommand;
-use Demo\Application\Command\System\PurgeEventsCommand;
-use Demo\Application\Command\System\PurgeProjectionsCommand;
-use Demo\Application\Command\System\ResetCommand;
-use Demo\Application\Command\System\SystemCommandHandler;
-use Demo\Domain\Event\CourseCapacityChangedEvent;
-use Demo\Domain\Event\CourseDefinedEvent;
-use Demo\Domain\Event\StudentRegisteredEvent;
-use Demo\Domain\Event\StudentSubscribedToCourseEvent;
-use Demo\Domain\Event\StudentUnsubscribedFromCourseEvent;
+use Demo\Feature\CourseCapacity\Command\ChangeCourseCapacityCommand;
+use Demo\Feature\CourseCapacity\Command\CourseCapacityHandler;
+use Demo\Feature\CourseCapacity\Event\CourseCapacityChangedEvent;
+use Demo\Feature\CourseCreation\Command\CourseCreationHandler;
+use Demo\Feature\CourseCreation\Command\DefineCourseCommand;
+use Demo\Feature\CourseCreation\Event\CourseDefinedEvent;
+use Demo\Feature\CourseSubscription\Command\CourseSubscriptionCommandHandler;
+use Demo\Feature\CourseSubscription\Command\SubscribeStudentToCourseCommand;
+use Demo\Feature\CourseSubscription\Command\UnsubscribeStudentFromCourseCommand;
+use Demo\Feature\CourseSubscription\Event\StudentSubscribedToCourseEvent;
+use Demo\Feature\CourseSubscription\Event\StudentUnsubscribedFromCourseEvent;
+use Demo\Feature\StudentRegistration\Command\RegisterStudentCommand;
+use Demo\Feature\StudentRegistration\Command\StudentRegistrationCommandHandler;
+use Demo\Feature\StudentRegistration\Event\StudentRegisteredEvent;
+use Demo\Infrastructure\System\CreateDatabaseCommand;
+use Demo\Infrastructure\System\InitializeProjectionsCommand;
+use Demo\Infrastructure\System\PurgeEventsCommand;
+use Demo\Infrastructure\System\PurgeProjectionsCommand;
+use Demo\Infrastructure\System\ResetCommand;
+use Demo\Infrastructure\System\SystemCommandHandler;
 use Demo\UI\Projection\CourseList\CourseListProjector;
 use Demo\UI\Projection\StudentList\StudentListProjector;
 use PDO;
@@ -60,16 +61,18 @@ use Ramsey\Uuid\Uuid;
 class Container implements ContainerInterface
 {
     private const COMMAND_HANDLERS = [
-        CourseCommandHandler::class => [
+        CourseCapacityHandler::class => [
             ChangeCourseCapacityCommand::class,
+        ],
+        CourseCreationHandler::class => [
             DefineCourseCommand::class,
         ],
-        StudentCommandHandler::class => [
-            RegisterStudentCommand::class,
-        ],
-        SubscriptionCommandHandler::class => [
+        CourseSubscriptionCommandHandler::class => [
             SubscribeStudentToCourseCommand::class,
             UnsubscribeStudentFromCourseCommand::class,
+        ],
+        StudentRegistrationCommandHandler::class => [
+            RegisterStudentCommand::class,
         ],
         SystemCommandHandler::class => [
             CreateDatabaseCommand::class,
@@ -146,7 +149,7 @@ class Container implements ContainerInterface
     private function getServices(): array
     {
         return [
-            CourseCommandHandler::class => fn (ContainerInterface $c) => new CourseCommandHandler(
+            CourseCreationHandler::class => fn (ContainerInterface $c) => new CourseCreationHandler(
                 $c->get(RepositoryInterface::class),
             ),
             CourseListProjector::class => fn (ContainerInterface $c) => new CourseListProjector(
@@ -200,13 +203,13 @@ class Container implements ContainerInterface
                 $c->get(EventBusInterface::class),
             ),
             StreamEnricherInterface::class => fn () => new StreamEnricher(),
-            StudentCommandHandler::class => fn (ContainerInterface $c) => new StudentCommandHandler(
+            StudentRegistrationCommandHandler::class => fn (ContainerInterface $c) => new StudentRegistrationCommandHandler(
                 $c->get(RepositoryInterface::class),
             ),
             StudentListProjector::class => fn (ContainerInterface $c) => new StudentListProjector(
                 $c->get(ProjectionStoreInterface::class),
             ),
-            SubscriptionCommandHandler::class => fn (ContainerInterface $c) => new SubscriptionCommandHandler(
+            CourseSubscriptionCommandHandler::class => fn (ContainerInterface $c) => new CourseSubscriptionCommandHandler(
                 $c->get(RepositoryInterface::class),
             ),
             SystemCommandHandler::class => fn (ContainerInterface $c) => new SystemCommandHandler(

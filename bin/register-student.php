@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Backslash\CommandDispatcher\DispatcherInterface;
-use Demo\Application\Command\Student\RegisterStudentCommand;
+use Demo\Feature\StudentRegistration\Command\RegisterStudentCommand;
 use Demo\UI\Args;
 use Psr\Container\ContainerInterface;
 

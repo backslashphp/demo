@@ -67,12 +67,4 @@ class StudentListProjection implements ProjectionInterface, Stringable, Countabl
     {
         $this->courses[$courseId] = $name;
     }
-
-    public function cancelCourse(string $courseId): void
-    {
-        unset($this->courses[$courseId]);
-        foreach ($this->students as $studentId => $student) {
-            unset($this->students[$studentId]['enrollments'][$courseId]);
-        }
-    }
 }

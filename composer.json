@@ -1,6 +1,7 @@
 {
     "require": {
-        "php": "^8.2",
+        "php": "^8.4",
+        "ext-ctype": "*",
         "ext-json": "*",
         "ext-pdo": "*",
         "backslashphp/backslash": "2.x-dev",

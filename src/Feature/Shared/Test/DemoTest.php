@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+namespace Demo\Feature\Shared\Test;
 
 use Backslash\Event\Metadata;
 use Backslash\Event\RecordedEvent;
@@ -9,16 +10,17 @@ use Backslash\Event\RecordedEventStream;
 use Backslash\Scenario\Play;
 use Backslash\Scenario\PublishedEvents;
 use Backslash\Scenario\UpdatedProjections;
+use DateTimeImmutable;
 use Demo\Feature\CourseCreation\Event\CourseDefinedEvent;
 use Demo\Feature\CourseSubscription\Command\SubscribeStudentToCourseCommand;
 use Demo\Feature\CourseSubscription\Command\UnsubscribeStudentFromCourseCommand;
 use Demo\Feature\CourseSubscription\Event\StudentSubscribedToCourseEvent;
 use Demo\Feature\CourseSubscription\Event\StudentUnsubscribedFromCourseEvent;
 use Demo\Feature\CourseSubscription\Exception\StudentNotSubscribedToCourseException;
+use Demo\Feature\Shared\Projection\CourseList\CourseListProjection;
+use Demo\Feature\Shared\Projection\StudentList\StudentListProjection;
 use Demo\Feature\StudentRegistration\Command\RegisterStudentCommand;
-use Demo\Test\TestCase;
-use Demo\UI\Projection\CourseList\CourseListProjection;
-use Demo\UI\Projection\StudentList\StudentListProjection;
+use Demo\Infrastructure\TestCase;
 
 /**
  * This test showcases most commonly used assertions provided by Scenario

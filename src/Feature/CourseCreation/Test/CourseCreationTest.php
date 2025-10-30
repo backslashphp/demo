@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace Demo\Feature\CourseCreation\Test;
 
+use Backslash\Scenario\Play;
 use Backslash\Scenario\PublishedEvents;
 use Backslash\Scenario\UpdatedProjections;
 use Demo\Feature\CourseCreation\Command\DefineCourseCommand;
 use Demo\Feature\CourseCreation\Event\CourseDefinedEvent;
 use Demo\Feature\CourseCreation\Exception\CourseIdAlreadyUsedException;
 use Demo\Feature\CourseCreation\Exception\InvalidCourseIdException;
-use Demo\Test\TestCase;
-use Demo\UI\Projection\CourseList\CourseListProjection;
+use Demo\Feature\Shared\Projection\CourseList\CourseListProjection;
+use Demo\Infrastructure\TestCase;
 
 class CourseCreationTest extends TestCase
 {
@@ -19,7 +20,7 @@ class CourseCreationTest extends TestCase
     public function create_course_happy_path(): void
     {
         $this->scenario->play(
-            $this->newPlay()
+            new Play()
                 ->dispatch(
                     new DefineCourseCommand('1', 'Maths', 10),
                 )
@@ -47,7 +48,7 @@ class CourseCreationTest extends TestCase
     public function reuse_course_id(): void
     {
         $this->scenario->play(
-            $this->newPlay()
+            new Play()
                 ->expectException(
                     CourseIdAlreadyUsedException::class,
                 )
@@ -67,7 +68,7 @@ class CourseCreationTest extends TestCase
     public function invalid_course_id(): void
     {
         $this->scenario->play(
-            $this->newPlay()
+            new Play()
                 ->expectException(
                     InvalidCourseIdException::class,
                 )

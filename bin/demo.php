@@ -6,7 +6,7 @@ use Backslash\CommandDispatcher\DispatcherInterface;
 use Demo\Feature\CourseCreation\Command\DefineCourseCommand;
 use Demo\Feature\CourseSubscription\Command\SubscribeStudentToCourseCommand;
 use Demo\Feature\StudentRegistration\Command\RegisterStudentCommand;
-use Demo\Infrastructure\System\ResetCommand;
+use Demo\Feature\System\Command\ResetCommand;
 use Psr\Container\ContainerInterface;
 
 /** @var ContainerInterface $container */

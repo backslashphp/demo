@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Demo\Feature\CourseCapacity\Command;
 
 use Demo\Feature\CourseCapacity\Model\CourseCapacityModel;
-use Demo\Shared\AbstractCommandHandler;
+use Demo\Infrastructure\AbstractCommandHandler;
 
 class CourseCapacityHandler extends AbstractCommandHandler
 {

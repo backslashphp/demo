@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Demo\Infrastructure\System;
+namespace Demo\Feature\System\Command;
 
 use Backslash\CommandDispatcher\DispatcherInterface;
 use Backslash\EventStore\EventStoreInterface;
@@ -11,9 +11,9 @@ use Backslash\PdoEventStore\Config;
 use Backslash\PdoEventStore\Driver;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
 use Backslash\Repository\RepositoryInterface;
-use Demo\Shared\AbstractCommandHandler;
-use Demo\UI\Projection\CourseList\CourseListProjection;
-use Demo\UI\Projection\StudentList\StudentListProjection;
+use Demo\Feature\Shared\Projection\CourseList\CourseListProjection;
+use Demo\Feature\Shared\Projection\StudentList\StudentListProjection;
+use Demo\Infrastructure\AbstractCommandHandler;
 
 class SystemCommandHandler extends AbstractCommandHandler
 {

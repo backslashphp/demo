@@ -2,17 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Demo\Test;
+namespace Demo\Infrastructure;
 
 use Backslash\CommandDispatcher\DispatcherInterface;
 use Backslash\EventBus\EventBusInterface;
 use Backslash\EventStore\EventStoreInterface;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
 use Backslash\Scenario\AssertionsTrait;
-use Backslash\Scenario\Play;
 use Backslash\Scenario\Scenario;
-use Demo\Infrastructure\ExitOnErrorCommandDispatcherMiddleware;
-use Demo\Infrastructure\System\ResetCommand;
+use Demo\Feature\System\Command\ResetCommand;
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 use Psr\Container\ContainerInterface;
 
@@ -28,7 +26,7 @@ class TestCase extends PHPUnitTestCase
     {
         parent::setUp();
 
-        $this->container = require __DIR__ . '/../bootstrap.php';
+        $this->container = require __DIR__ . '/../../bootstrap.php';
 
         /** @var ExitOnErrorCommandDispatcherMiddleware $exitOnError */
         $exitOnError = $this->container->get(ExitOnErrorCommandDispatcherMiddleware::class);
@@ -44,10 +42,5 @@ class TestCase extends PHPUnitTestCase
             $this->container->get(ProjectionStoreInterface::class),
             $this->container->get(EventStoreInterface::class),
         );
-    }
-
-    protected function newPlay(): Play
-    {
-        return new Play();
     }
 }

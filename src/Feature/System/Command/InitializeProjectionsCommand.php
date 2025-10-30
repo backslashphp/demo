@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Demo\Infrastructure\System;
+namespace Demo\Feature\System\Command;
 
 class InitializeProjectionsCommand
 {

@@ -9,9 +9,9 @@ use Backslash\EventStore\EventStoreInterface;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
 use Backslash\StreamEnricher\StreamEnricherInterface;
 use Backslash\StreamPublishingInspection\Inspector;
+use Demo\Feature\System\Command\InitializeProjectionsCommand;
+use Demo\Feature\System\Command\PurgeProjectionsCommand;
 use Demo\Infrastructure\StreamEnricher;
-use Demo\Infrastructure\System\InitializeProjectionsCommand;
-use Demo\Infrastructure\System\PurgeProjectionsCommand;
 use Psr\Container\ContainerInterface;
 
 /** @var ContainerInterface $container */

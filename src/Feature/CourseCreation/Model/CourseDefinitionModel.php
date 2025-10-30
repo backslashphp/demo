@@ -12,7 +12,6 @@ use Demo\Feature\CourseCapacity\Exception\InvalidCourseCapacityException;
 use Demo\Feature\CourseCreation\Event\CourseDefinedEvent;
 use Demo\Feature\CourseCreation\Exception\CourseIdAlreadyUsedException;
 use Demo\Feature\CourseCreation\Exception\InvalidCourseIdException;
-use Demo\Shared\Util;
 
 class CourseDefinitionModel extends AbstractModel
 {
@@ -29,7 +28,7 @@ class CourseDefinitionModel extends AbstractModel
         if ($this->courseExists) {
             throw new CourseIdAlreadyUsedException();
         }
-        if (!Util::isNumber($courseId)) {
+        if (!ctype_digit($courseId)) {
             throw new InvalidCourseIdException();
         }
         if ($capacity <= 0) {

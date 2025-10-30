@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Demo\UI\Projection\StudentList;
+namespace Demo\Feature\Shared\Projection\StudentList;
 
 use Backslash\Projection\ProjectionInterface;
 use Countable;

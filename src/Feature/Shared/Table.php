@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Demo\UI;
+namespace Demo\Feature\Shared;
 
 use InvalidArgumentException;
 use Stringable;

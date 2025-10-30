@@ -43,17 +43,17 @@ use Demo\Feature\CourseSubscription\Command\SubscribeStudentToCourseCommand;
 use Demo\Feature\CourseSubscription\Command\UnsubscribeStudentFromCourseCommand;
 use Demo\Feature\CourseSubscription\Event\StudentSubscribedToCourseEvent;
 use Demo\Feature\CourseSubscription\Event\StudentUnsubscribedFromCourseEvent;
+use Demo\Feature\Shared\Projection\CourseList\CourseListProjector;
+use Demo\Feature\Shared\Projection\StudentList\StudentListProjector;
 use Demo\Feature\StudentRegistration\Command\RegisterStudentCommand;
 use Demo\Feature\StudentRegistration\Command\StudentRegistrationCommandHandler;
 use Demo\Feature\StudentRegistration\Event\StudentRegisteredEvent;
-use Demo\Infrastructure\System\CreateDatabaseCommand;
-use Demo\Infrastructure\System\InitializeProjectionsCommand;
-use Demo\Infrastructure\System\PurgeEventsCommand;
-use Demo\Infrastructure\System\PurgeProjectionsCommand;
-use Demo\Infrastructure\System\ResetCommand;
-use Demo\Infrastructure\System\SystemCommandHandler;
-use Demo\UI\Projection\CourseList\CourseListProjector;
-use Demo\UI\Projection\StudentList\StudentListProjector;
+use Demo\Feature\System\Command\CreateDatabaseCommand;
+use Demo\Feature\System\Command\InitializeProjectionsCommand;
+use Demo\Feature\System\Command\PurgeEventsCommand;
+use Demo\Feature\System\Command\PurgeProjectionsCommand;
+use Demo\Feature\System\Command\ResetCommand;
+use Demo\Feature\System\Command\SystemCommandHandler;
 use PDO;
 use Psr\Container\ContainerInterface;
 use Ramsey\Uuid\Uuid;
@@ -149,6 +149,9 @@ class Container implements ContainerInterface
     private function getServices(): array
     {
         return [
+            CourseCapacityHandler::class => fn (ContainerInterface $c) => new CourseCapacityHandler(
+                $c->get(RepositoryInterface::class),
+            ),
             CourseCreationHandler::class => fn (ContainerInterface $c) => new CourseCreationHandler(
                 $c->get(RepositoryInterface::class),
             ),

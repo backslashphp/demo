@@ -11,7 +11,6 @@ use Backslash\Model\AbstractModel;
 use Demo\Feature\StudentRegistration\Event\StudentRegisteredEvent;
 use Demo\Feature\StudentRegistration\Exception\InvalidStudentIdException;
 use Demo\Feature\StudentRegistration\Exception\StudentIdAlreadyUsedException;
-use Demo\Shared\Util;
 
 class StudentRegistrationModel extends AbstractModel
 {
@@ -30,7 +29,7 @@ class StudentRegistrationModel extends AbstractModel
         if ($this->registered) {
             throw new StudentIdAlreadyUsedException();
         }
-        if (!Util::isNumber($studentId)) {
+        if (!ctype_digit($studentId)) {
             throw new InvalidStudentIdException();
         }
         $this->record(new StudentRegisteredEvent($studentId, $name));

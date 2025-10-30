@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Demo;
 
 use Backslash\CommandDispatcher\DispatcherInterface;
+use Demo\Feature\System\Command\CreateDatabaseCommand;
 use Demo\Infrastructure\ContainerSingleton;
-use Demo\Infrastructure\System\CreateDatabaseCommand;
 use Psr\Container\ContainerInterface;
 
 return (function (): ContainerInterface {

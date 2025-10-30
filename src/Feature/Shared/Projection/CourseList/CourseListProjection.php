@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Demo\UI\Projection\CourseList;
+namespace Demo\Feature\Shared\Projection\CourseList;
 
 use Backslash\Projection\ProjectionInterface;
 use Stringable;

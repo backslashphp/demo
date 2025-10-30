@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Demo\Feature\CourseCreation\Command;
 
 use Demo\Feature\CourseCreation\Model\CourseDefinitionModel;
-use Demo\Shared\AbstractCommandHandler;
+use Demo\Infrastructure\AbstractCommandHandler;
 
 class CourseCreationHandler extends AbstractCommandHandler
 {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Backslash\CommandDispatcher\DispatcherInterface;
 use Demo\Feature\CourseCapacity\Command\ChangeCourseCapacityCommand;
-use Demo\UI\Args;
+use Demo\Feature\Shared\Args;
 use Psr\Container\ContainerInterface;
 
 /** @var ContainerInterface $container */

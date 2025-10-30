@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Demo\Feature\CourseSubscription\Test;
 
+use Backslash\Scenario\Play;
 use Backslash\Scenario\PublishedEvents;
 use Backslash\Scenario\UpdatedProjections;
 use Demo\Feature\CourseCreation\Command\DefineCourseCommand;
@@ -16,17 +17,17 @@ use Demo\Feature\CourseSubscription\Exception\CourseAtFullCapacityException;
 use Demo\Feature\CourseSubscription\Exception\StudentAlreadySubscribedToCourseException;
 use Demo\Feature\CourseSubscription\Exception\StudentMaximumSubscriptionsReachedException;
 use Demo\Feature\CourseSubscription\Exception\StudentNotSubscribedToCourseException;
+use Demo\Feature\Shared\Projection\StudentList\StudentListProjection;
 use Demo\Feature\StudentRegistration\Command\RegisterStudentCommand;
 use Demo\Feature\StudentRegistration\Exception\StudentNotRegisteredException;
-use Demo\Test\TestCase;
-use Demo\UI\Projection\StudentList\StudentListProjection;
+use Demo\Infrastructure\TestCase;
 
 class SubscriptionTest extends TestCase
 {
     /** @test */
     public function course_subscription_happy_path(): void
     {
-        $subscribe = $this->newPlay()
+        $subscribe = new Play()
             ->withInitialCommands(
                 new DefineCourseCommand('123', 'Maths', 10),
                 new RegisterStudentCommand('1', 'John'),
@@ -45,7 +46,7 @@ class SubscriptionTest extends TestCase
                 $this->assertStringContainsString('John (Maths)', (string) $studentList);
             });
 
-        $unsubscribe = $this->newPlay()
+        $unsubscribe = new Play()
             ->dispatch(
                 new UnsubscribeStudentFromCourseCommand('1', '123'),
             )
@@ -73,7 +74,7 @@ class SubscriptionTest extends TestCase
     public function subscribe_an_unregistered_student(): void
     {
         $this->scenario->play(
-            $this->newPlay()
+            new Play()
                 ->expectException(
                     StudentNotRegisteredException::class,
                 )
@@ -93,7 +94,7 @@ class SubscriptionTest extends TestCase
     public function subscribe_to_undefined_course(): void
     {
         $this->scenario->play(
-            $this->newPlay()
+            new Play()
                 ->expectException(
                     CourseNotDefinedException::class,
                 )
@@ -113,7 +114,7 @@ class SubscriptionTest extends TestCase
     public function subscribe_twice(): void
     {
         $this->scenario->play(
-            $this->newPlay()
+            new Play()
                 ->expectException(
                     StudentAlreadySubscribedToCourseException::class,
                 )
@@ -135,7 +136,7 @@ class SubscriptionTest extends TestCase
     public function unsubscribe_from_course_when_not_subscribed(): void
     {
         $this->scenario->play(
-            $this->newPlay()
+            new Play()
                 ->expectException(
                     StudentNotSubscribedToCourseException::class,
                 )
@@ -156,7 +157,7 @@ class SubscriptionTest extends TestCase
     public function subscribe_to_more_than_3_courses(): void
     {
         $this->scenario->play(
-            $this->newPlay()
+            new Play()
                 ->expectException(
                     StudentMaximumSubscriptionsReachedException::class,
                 )
@@ -183,7 +184,7 @@ class SubscriptionTest extends TestCase
     public function exceed_course_capacity(): void
     {
         $this->scenario->play(
-            $this->newPlay()
+            new Play()
                 ->expectException(
                     CourseAtFullCapacityException::class,
                 )

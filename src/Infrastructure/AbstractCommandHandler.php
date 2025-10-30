@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Demo\Shared;
+namespace Demo\Infrastructure;
 
 use Backslash\CommandDispatcher\HandleCommandTrait;
 use Backslash\CommandDispatcher\HandlerInterface;

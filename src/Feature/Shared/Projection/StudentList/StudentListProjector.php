@@ -2,19 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Demo\UI\Projection\CourseList;
+namespace Demo\Feature\Shared\Projection\StudentList;
 
 use Backslash\EventBus\EventHandlerInterface;
 use Backslash\EventBus\EventHandlerTrait;
 use Backslash\ProjectionStore\ProjectionNotFoundException;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
-use Demo\Feature\CourseCapacity\Event\CourseCapacityChangedEvent;
 use Demo\Feature\CourseCreation\Event\CourseDefinedEvent;
 use Demo\Feature\CourseSubscription\Event\StudentSubscribedToCourseEvent;
 use Demo\Feature\CourseSubscription\Event\StudentUnsubscribedFromCourseEvent;
 use Demo\Feature\StudentRegistration\Event\StudentRegisteredEvent;
 
-class CourseListProjector implements EventHandlerInterface
+class StudentListProjector implements EventHandlerInterface
 {
     use EventHandlerTrait;
 
@@ -25,31 +24,24 @@ class CourseListProjector implements EventHandlerInterface
         $this->projections = $projections;
     }
 
-    protected function handleCourseCapacityChangedEvent(CourseCapacityChangedEvent $event): void
-    {
-        $list = $this->getList();
-        $list->changeCapacity($event->courseId, $event->new);
-        $this->projections->store($list);
-    }
-
     protected function handleCourseDefinedEvent(CourseDefinedEvent $event): void
     {
         $list = $this->getList();
-        $list->defineCourse($event->courseId, $event->name, $event->capacity);
+        $list->defineCourse($event->courseId, $event->name);
         $this->projections->store($list);
     }
 
     protected function handleStudentSubscribedToCourseEvent(StudentSubscribedToCourseEvent $event): void
     {
         $list = $this->getList();
-        $list->subscribe($event->courseId, $event->studentId);
+        $list->subscribe($event->studentId, $event->courseId);
         $this->projections->store($list);
     }
 
     protected function handleStudentUnsubscribedFromCourseEvent(StudentUnsubscribedFromCourseEvent $event): void
     {
         $list = $this->getList();
-        $list->unsubscribe($event->courseId, $event->studentId);
+        $list->unsubscribe($event->studentId, $event->courseId);
         $this->projections->store($list);
     }
 
@@ -60,13 +52,13 @@ class CourseListProjector implements EventHandlerInterface
         $this->projections->store($list);
     }
 
-    private function getList(): CourseListProjection
+    private function getList(): StudentListProjection
     {
         try {
-            /** @var CourseListProjection $p */
-            $p = $this->projections->find(CourseListProjection::ID, CourseListProjection::class);
+            /** @var StudentListProjection $p */
+            $p = $this->projections->find(StudentListProjection::ID, StudentListProjection::class);
         } catch (ProjectionNotFoundException) {
-            $p = new CourseListProjection();
+            $p = new StudentListProjection();
         }
         return $p;
     }

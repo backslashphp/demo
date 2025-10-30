@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use Backslash\CommandDispatcher\DispatcherInterface;
+use Demo\Feature\Console\Args;
 use Demo\Feature\CourseSubscription\Command\SubscribeStudentToCourseCommand;
-use Demo\Feature\Shared\Args;
 use Psr\Container\ContainerInterface;
 
 /** @var ContainerInterface $container */

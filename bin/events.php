@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Backslash\Pdo\PdoInterface;
-use Demo\Feature\Shared\Table;
+use Demo\Feature\Console\Table;
 use Psr\Container\ContainerInterface;
 
 /** @var ContainerInterface $container */

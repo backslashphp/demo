@@ -11,9 +11,9 @@ use Backslash\PdoEventStore\Config;
 use Backslash\PdoEventStore\Driver;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
 use Backslash\Repository\RepositoryInterface;
+use Demo\Feature\Shared\Command\AbstractCommandHandler;
 use Demo\Feature\Shared\Projection\CourseList\CourseListProjection;
 use Demo\Feature\Shared\Projection\StudentList\StudentListProjection;
-use Demo\Infrastructure\AbstractCommandHandler;
 
 class SystemCommandHandler extends AbstractCommandHandler
 {

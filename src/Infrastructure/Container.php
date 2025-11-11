@@ -11,6 +11,9 @@ use Backslash\CommandDispatcher\HandlerProxy;
 use Backslash\EventBus\EventBus;
 use Backslash\EventBus\EventBusInterface;
 use Backslash\EventBus\EventHandlerProxy;
+use Backslash\EventNameResolver\EventNameResolver;
+use Backslash\EventNameResolver\EventNameResolverInterface;
+use Backslash\EventNameResolver\MatchingClassEventNameResolverAdapter;
 use Backslash\EventStore\EventStore;
 use Backslash\EventStore\EventStoreInterface;
 use Backslash\Pdo\PdoInterface;
@@ -171,12 +174,17 @@ class Container implements ContainerInterface
                 $bus->addMiddleware(new StreamEnricherEventBusMiddleware($c->get(StreamEnricherInterface::class)));
                 return $bus;
             },
+            EventNameResolverInterface::class => fn () => new EventNameResolver(
+                new MatchingClassEventNameResolverAdapter(),
+            ),
             EventStoreInterface::class => function (ContainerInterface $c) {
+                $eventNameResolver = $c->get(EventNameResolverInterface::class);
                 $store = new EventStore(
                     new PdoEventStoreAdapter(
                         $c->get(PdoInterface::class),
                         new PdoEventStoreConfig(),
-                        new Serializer(new JsonEventSerializer()),
+                        $eventNameResolver,
+                        new Serializer(new JsonEventSerializer($eventNameResolver)),
                         new Serializer(new JsonIdentifiersSerializer()),
                         new Serializer(new JsonMetadataSerializer()),
                         fn () => Uuid::uuid4()->toString(),

@@ -13,10 +13,12 @@ use Demo\Feature\StudentRegistration\Event\StudentRegisteredEvent;
 use Demo\Feature\StudentRegistration\Exception\InvalidStudentIdException;
 use Demo\Feature\StudentRegistration\Exception\StudentIdAlreadyUsedException;
 use Demo\Infrastructure\TestCase;
+use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
+use PHPUnit\Framework\Attributes\Test;
 
 class StudentTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function register_student_happy_path(): void
     {
         $this->scenario->play(
@@ -41,10 +43,8 @@ class StudentTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     * @doesNotPerformAssertions
-     */
+    #[Test]
+    #[DoesNotPerformAssertions]
     public function reuse_student_id(): void
     {
         $this->scenario->play(
@@ -61,10 +61,8 @@ class StudentTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     * @doesNotPerformAssertions
-     */
+    #[Test]
+    #[DoesNotPerformAssertions]
     public function invalid_student_id(): void
     {
         $this->scenario->play(

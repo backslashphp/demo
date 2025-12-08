@@ -21,10 +21,12 @@ use Demo\Feature\Shared\Projection\StudentList\StudentListProjection;
 use Demo\Feature\StudentRegistration\Command\RegisterStudentCommand;
 use Demo\Feature\StudentRegistration\Exception\StudentNotRegisteredException;
 use Demo\Infrastructure\TestCase;
+use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
+use PHPUnit\Framework\Attributes\Test;
 
 class SubscriptionTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function course_subscription_happy_path(): void
     {
         $subscribe = new Play()
@@ -67,10 +69,8 @@ class SubscriptionTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     * @doesNotPerformAssertions
-     */
+    #[Test]
+    #[DoesNotPerformAssertions]
     public function subscribe_an_unregistered_student(): void
     {
         $this->scenario->play(
@@ -87,10 +87,8 @@ class SubscriptionTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     * @doesNotPerformAssertions
-     */
+    #[Test]
+    #[DoesNotPerformAssertions]
     public function subscribe_to_undefined_course(): void
     {
         $this->scenario->play(
@@ -107,10 +105,8 @@ class SubscriptionTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     * @doesNotPerformAssertions
-     */
+    #[Test]
+    #[DoesNotPerformAssertions]
     public function subscribe_twice(): void
     {
         $this->scenario->play(
@@ -129,10 +125,8 @@ class SubscriptionTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     * @doesNotPerformAssertions
-     */
+    #[Test]
+    #[DoesNotPerformAssertions]
     public function unsubscribe_from_course_when_not_subscribed(): void
     {
         $this->scenario->play(
@@ -150,10 +144,8 @@ class SubscriptionTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     * @doesNotPerformAssertions
-     */
+    #[Test]
+    #[DoesNotPerformAssertions]
     public function subscribe_to_more_than_3_courses(): void
     {
         $this->scenario->play(
@@ -177,10 +169,8 @@ class SubscriptionTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     * @doesNotPerformAssertions
-     */
+    #[Test]
+    #[DoesNotPerformAssertions]
     public function exceed_course_capacity(): void
     {
         $this->scenario->play(

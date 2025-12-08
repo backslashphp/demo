@@ -13,10 +13,12 @@ use Demo\Feature\CourseCreation\Exception\CourseIdAlreadyUsedException;
 use Demo\Feature\CourseCreation\Exception\InvalidCourseIdException;
 use Demo\Feature\Shared\Projection\CourseList\CourseListProjection;
 use Demo\Infrastructure\TestCase;
+use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
+use PHPUnit\Framework\Attributes\Test;
 
 class CourseCreationTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function create_course_happy_path(): void
     {
         $this->scenario->play(
@@ -41,10 +43,8 @@ class CourseCreationTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     * @doesNotPerformAssertions
-     */
+    #[Test]
+    #[DoesNotPerformAssertions]
     public function reuse_course_id(): void
     {
         $this->scenario->play(
@@ -61,10 +61,8 @@ class CourseCreationTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     * @doesNotPerformAssertions
-     */
+    #[Test]
+    #[DoesNotPerformAssertions]
     public function invalid_course_id(): void
     {
         $this->scenario->play(

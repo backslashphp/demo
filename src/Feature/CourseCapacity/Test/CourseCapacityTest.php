@@ -12,13 +12,13 @@ use Demo\Feature\CourseCapacity\Exception\InvalidCourseCapacityException;
 use Demo\Feature\CourseCreation\Command\DefineCourseCommand;
 use Demo\Feature\CourseCreation\Exception\CourseNotDefinedException;
 use Demo\Infrastructure\TestCase;
+use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
+use PHPUnit\Framework\Attributes\Test;
 
 class CourseCapacityTest extends TestCase
 {
-    /**
-     * @test
-     * @doesNotPerformAssertions
-     */
+    #[Test]
+    #[DoesNotPerformAssertions]
     public function change_to_invalid_capacity(): void
     {
         $this->scenario->play(
@@ -35,7 +35,7 @@ class CourseCapacityTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function change_to_same_capacity(): void
     {
         $this->scenario->play(
@@ -52,10 +52,8 @@ class CourseCapacityTest extends TestCase
         );
     }
 
-    /**
-     * @test
-     * @doesNotPerformAssertions
-     */
+    #[Test]
+    #[DoesNotPerformAssertions]
     public function change_capacity_of_undefined_course(): void
     {
         $this->scenario->play(

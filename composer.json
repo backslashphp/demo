@@ -5,7 +5,7 @@
         "ext-json": "*",
         "ext-pdo": "*",
         "ext-pdo_sqlite": "*",
-        "backslashphp/backslash": "^2.x-dev",
+        "backslashphp/backslash": "dev-2.x-scenario",
         "psr/container": "^2",
         "ramsey/uuid": "^4"
     },

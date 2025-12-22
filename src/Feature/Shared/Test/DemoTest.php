@@ -42,7 +42,7 @@ class DemoTest extends TestCase
                     ),
                 ),
             )
-            ->withInitialCommands(
+            ->given(
                 new RegisterStudentCommand($studentId, 'John'),
             )
             ->dispatch(
@@ -83,7 +83,7 @@ class DemoTest extends TestCase
             });
 
         $oops = new Play()
-            ->expectException(StudentNotSubscribedToCourseException::class)
+            ->thenExpectException(StudentNotSubscribedToCourseException::class)
             ->dispatch(
                 new UnsubscribeStudentFromCourseCommand($studentId, $courseId),
             );

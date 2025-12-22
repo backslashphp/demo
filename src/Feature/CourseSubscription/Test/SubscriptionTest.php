@@ -30,34 +30,34 @@ class SubscriptionTest extends TestCase
     public function course_subscription_happy_path(): void
     {
         $subscribe = new Play()
-            ->withInitialCommands(
+            ->given(
                 new DefineCourseCommand('123', 'Maths', 10),
                 new RegisterStudentCommand('1', 'John'),
             )
-            ->dispatch(
+            ->when(
                 new SubscribeStudentToCourseCommand('1', '123'),
             )
-            ->testEvents(function (PublishedEvents $events): void {
+            ->then(function (PublishedEvents $events): void {
                 $this->assertPublishedEventsContainExactly([
                     StudentSubscribedToCourseEvent::class => 1,
                 ], $events);
             })
-            ->testProjections(function (UpdatedProjections $projections): void {
+            ->then(function (UpdatedProjections $projections): void {
                 /** @var StudentListProjection $studentList */
                 $studentList = $projections->getAllOf(StudentListProjection::class)[0];
                 $this->assertStringContainsString('John (Maths)', (string) $studentList);
             });
 
         $unsubscribe = new Play()
-            ->dispatch(
+            ->when(
                 new UnsubscribeStudentFromCourseCommand('1', '123'),
             )
-            ->testEvents(function (PublishedEvents $events): void {
+            ->then(function (PublishedEvents $events): void {
                 $this->assertPublishedEventsContainExactly([
                     StudentUnsubscribedFromCourseEvent::class => 1,
                 ], $events);
             })
-            ->testProjections(function (UpdatedProjections $projections): void {
+            ->then(function (UpdatedProjections $projections): void {
                 /** @var StudentListProjection $studentList */
                 $studentList = $projections->getAllOf(StudentListProjection::class)[0];
                 $this->assertStringNotContainsString('John (Maths)', (string) $studentList);
@@ -75,14 +75,14 @@ class SubscriptionTest extends TestCase
     {
         $this->scenario->play(
             new Play()
-                ->expectException(
-                    StudentNotRegisteredException::class,
-                )
-                ->withInitialCommands(
+                ->given(
                     new DefineCourseCommand('1', 'Maths', 10),
                 )
-                ->dispatch(
+                ->when(
                     new SubscribeStudentToCourseCommand('123', '1'),
+                )
+                ->thenExpectException(
+                    StudentNotRegisteredException::class,
                 ),
         );
     }
@@ -93,14 +93,14 @@ class SubscriptionTest extends TestCase
     {
         $this->scenario->play(
             new Play()
-                ->expectException(
-                    CourseNotDefinedException::class,
-                )
-                ->withInitialCommands(
+                ->given(
                     new RegisterStudentCommand('1', 'John'),
                 )
-                ->dispatch(
+                ->when(
                     new SubscribeStudentToCourseCommand('1', '123'),
+                )
+                ->thenExpectException(
+                    CourseNotDefinedException::class,
                 ),
         );
     }
@@ -111,16 +111,16 @@ class SubscriptionTest extends TestCase
     {
         $this->scenario->play(
             new Play()
-                ->expectException(
-                    StudentAlreadySubscribedToCourseException::class,
-                )
-                ->withInitialCommands(
+                ->given(
                     new RegisterStudentCommand('1', 'John'),
                     new DefineCourseCommand('123', 'Maths', 10),
                     new SubscribeStudentToCourseCommand('1', '123'),
                 )
-                ->dispatch(
+                ->when(
                     new SubscribeStudentToCourseCommand('1', '123'),
+                )
+                ->thenExpectException(
+                    StudentAlreadySubscribedToCourseException::class,
                 ),
         );
     }
@@ -131,15 +131,15 @@ class SubscriptionTest extends TestCase
     {
         $this->scenario->play(
             new Play()
-                ->expectException(
-                    StudentNotSubscribedToCourseException::class,
-                )
-                ->withInitialCommands(
+                ->given(
                     new RegisterStudentCommand('1', 'John'),
                     new DefineCourseCommand('123', 'Maths', 10),
                 )
-                ->dispatch(
+                ->when(
                     new UnsubscribeStudentFromCourseCommand('1', '123'),
+                )
+                ->thenExpectException(
+                    StudentNotSubscribedToCourseException::class,
                 ),
         );
     }
@@ -150,10 +150,7 @@ class SubscriptionTest extends TestCase
     {
         $this->scenario->play(
             new Play()
-                ->expectException(
-                    StudentMaximumSubscriptionsReachedException::class,
-                )
-                ->withInitialCommands(
+                ->given(
                     new RegisterStudentCommand('1', 'John'),
                     new DefineCourseCommand('123', 'Maths', 10),
                     new DefineCourseCommand('234', 'French', 10),
@@ -163,8 +160,11 @@ class SubscriptionTest extends TestCase
                     new SubscribeStudentToCourseCommand('1', '234'),
                     new SubscribeStudentToCourseCommand('1', '345'),
                 )
-                ->dispatch(
+                ->when(
                     new SubscribeStudentToCourseCommand('1', '456'),
+                )
+                ->thenExpectException(
+                    StudentMaximumSubscriptionsReachedException::class,
                 ),
         );
     }
@@ -175,10 +175,7 @@ class SubscriptionTest extends TestCase
     {
         $this->scenario->play(
             new Play()
-                ->expectException(
-                    CourseAtFullCapacityException::class,
-                )
-                ->withInitialCommands(
+                ->given(
                     new DefineCourseCommand('123', 'Maths', 3),
                     new RegisterStudentCommand('1', 'John'),
                     new RegisterStudentCommand('2', 'Mary'),
@@ -188,8 +185,11 @@ class SubscriptionTest extends TestCase
                     new SubscribeStudentToCourseCommand('2', '123'),
                     new SubscribeStudentToCourseCommand('3', '123'),
                 )
-                ->dispatch(
+                ->when(
                     new SubscribeStudentToCourseCommand('4', '123'),
+                )
+                ->thenExpectException(
+                    CourseAtFullCapacityException::class,
                 ),
         );
     }

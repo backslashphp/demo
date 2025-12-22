@@ -4,13 +4,9 @@ declare(strict_types=1);
 
 namespace Demo\Feature\Shared\Test;
 
-use Backslash\Event\Metadata;
-use Backslash\Event\RecordedEvent;
-use Backslash\Event\RecordedEventStream;
 use Backslash\Scenario\Play;
 use Backslash\Scenario\PublishedEvents;
 use Backslash\Scenario\UpdatedProjections;
-use DateTimeImmutable;
 use Demo\Feature\CourseCreation\Event\CourseDefinedEvent;
 use Demo\Feature\CourseSubscription\Command\SubscribeStudentToCourseCommand;
 use Demo\Feature\CourseSubscription\Command\UnsubscribeStudentFromCourseCommand;
@@ -33,25 +29,17 @@ class DemoTest extends TestCase
         $courseId = '2';
 
         $subscribe = new Play()
-            ->withInitialEvents(
-                new RecordedEventStream(
-                    RecordedEvent::create(
-                        new CourseDefinedEvent($courseId, 'Maths', 30),
-                        new Metadata(),
-                        new DateTimeImmutable(),
-                    ),
-                ),
-            )
             ->given(
+                new CourseDefinedEvent($courseId, 'Maths', 30),
                 new RegisterStudentCommand($studentId, 'John'),
             )
-            ->dispatch(
+            ->when(
                 new SubscribeStudentToCourseCommand($studentId, $courseId),
             )
-            ->doAction(function (): void {
+            ->when(function (): void {
                 define('MY_CONSTANT', 'some-value');
             })
-            ->testEvents(function (PublishedEvents $events) use ($studentId, $courseId): void {
+            ->then(function (PublishedEvents $events) use ($studentId, $courseId): void {
                 $this->assertPublishedEventsCount(1, $events);
                 $this->assertPublishedEventsContainOnly(StudentSubscribedToCourseEvent::class, $events);
                 $this->assertPublishedEventsDoNotContain(StudentUnsubscribedFromCourseEvent::class, $events);
@@ -61,32 +49,32 @@ class DemoTest extends TestCase
                 $this->assertEquals($studentId, $event->studentId);
                 $this->assertEquals($courseId, $event->courseId);
             })
-            ->testProjections(function (UpdatedProjections $projections): void {
+            ->then(function (UpdatedProjections $projections): void {
                 $this->assertUpdatedProjectionsCount(2, $projections);
                 $this->assertUpdatedProjectionsContainExactly([
                     CourseListProjection::class => 1,
                     StudentListProjection::class => 1,
                 ], $projections);
             })
-            ->testThat(function (): void {
+            ->then(function (): void {
                 defined('MY_CONSTANT');
             });
 
         $unsubscribe = new Play()
-            ->dispatch(
+            ->when(
                 new UnsubscribeStudentFromCourseCommand($studentId, $courseId),
             )
-            ->testEvents(function (PublishedEvents $events) use ($studentId, $courseId): void {
+            ->then(function (PublishedEvents $events) use ($studentId, $courseId): void {
                 $this->assertPublishedEventsContainExactly([
                     StudentUnsubscribedFromCourseEvent::class => 1,
                 ], $events);
             });
 
         $oops = new Play()
-            ->thenExpectException(StudentNotSubscribedToCourseException::class)
-            ->dispatch(
+            ->when(
                 new UnsubscribeStudentFromCourseCommand($studentId, $courseId),
-            );
+            )
+            ->thenExpectException(StudentNotSubscribedToCourseException::class);
 
         $this->scenario->play(
             $subscribe,

@@ -8,6 +8,7 @@ use Backslash\CommandDispatcher\DispatcherInterface;
 use Backslash\EventBus\EventBusInterface;
 use Backslash\EventStore\EventStoreInterface;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
+use Backslash\Repository\RepositoryInterface;
 use Backslash\Scenario\AssertionsTrait;
 use Backslash\Scenario\Scenario;
 use Demo\Feature\System\Command\ResetCommand;
@@ -41,6 +42,7 @@ class TestCase extends PHPUnitTestCase
             $this->container->get(DispatcherInterface::class),
             $this->container->get(ProjectionStoreInterface::class),
             $this->container->get(EventStoreInterface::class),
+            $this->container->get(RepositoryInterface::class),
         );
     }
 }

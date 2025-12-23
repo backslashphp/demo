@@ -45,4 +45,9 @@ class TestCase extends PHPUnitTestCase
             $this->container->get(RepositoryInterface::class),
         );
     }
+
+    protected function getContainer(): ContainerInterface
+    {
+        return $this->container;
+    }
 }

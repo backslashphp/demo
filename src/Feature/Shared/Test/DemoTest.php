@@ -17,12 +17,14 @@ use Demo\Feature\Shared\Projection\CourseList\CourseListProjection;
 use Demo\Feature\Shared\Projection\StudentList\StudentListProjection;
 use Demo\Feature\StudentRegistration\Command\RegisterStudentCommand;
 use Demo\Infrastructure\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * This test showcases most commonly used assertions provided by Scenario
  */
 class DemoTest extends TestCase
 {
+    #[Test]
     public function test_demo(): void
     {
         $studentId = '1';

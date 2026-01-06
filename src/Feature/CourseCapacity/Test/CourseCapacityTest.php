@@ -23,14 +23,14 @@ class CourseCapacityTest extends TestCase
     {
         $this->scenario->play(
             new Play()
-                ->expectException(
-                    InvalidCourseCapacityException::class,
-                )
-                ->withInitialCommands(
+                ->given(
                     new DefineCourseCommand('1', 'Maths', 10),
                 )
-                ->dispatch(
+                ->when(
                     new ChangeCourseCapacityCommand('1', -5),
+                )
+                ->thenExpectException(
+                    InvalidCourseCapacityException::class,
                 ),
         );
     }
@@ -40,13 +40,13 @@ class CourseCapacityTest extends TestCase
     {
         $this->scenario->play(
             new Play()
-                ->withInitialCommands(
+                ->given(
                     new DefineCourseCommand('1', 'Maths', 10),
                 )
-                ->dispatch(
+                ->when(
                     new ChangeCourseCapacityCommand('1', 10),
                 )
-                ->testEvents(function (PublishedEvents $events): void {
+                ->then(function (PublishedEvents $events): void {
                     $this->assertPublishedEventsDoNotContain(CourseCapacityChangedEvent::class, $events);
                 }),
         );
@@ -58,11 +58,11 @@ class CourseCapacityTest extends TestCase
     {
         $this->scenario->play(
             new Play()
-                ->expectException(
-                    CourseNotDefinedException::class,
-                )
-                ->dispatch(
+                ->when(
                     new ChangeCourseCapacityCommand('1', 10),
+                )
+                ->thenExpectException(
+                    CourseNotDefinedException::class,
                 ),
         );
     }

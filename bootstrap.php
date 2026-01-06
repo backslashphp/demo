@@ -6,7 +6,7 @@ namespace Demo;
 
 use Backslash\CommandDispatcher\DispatcherInterface;
 use Demo\Feature\System\Command\CreateDatabaseCommand;
-use Demo\Infrastructure\ContainerSingleton;
+use Demo\Infrastructure\Container;
 use Psr\Container\ContainerInterface;
 
 return (function (): ContainerInterface {
@@ -21,7 +21,7 @@ return (function (): ContainerInterface {
     }
     include_once 'vendor/autoload.php';
 
-    $container = ContainerSingleton::get();
+    $container = new Container();
 
     /** @var DispatcherInterface $dispatcher */
     $dispatcher = $container->get(DispatcherInterface::class);

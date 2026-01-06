@@ -23,15 +23,15 @@ class StudentTest extends TestCase
     {
         $this->scenario->play(
             new Play()
-                ->dispatch(
+                ->when(
                     new RegisterStudentCommand('1', 'John'),
                 )
-                ->testEvents(function (PublishedEvents $events): void {
+                ->then(function (PublishedEvents $events): void {
                     $this->assertPublishedEventsContainExactly([
                         StudentRegisteredEvent::class => 1,
                     ], $events);
                 })
-                ->testProjections(function (UpdatedProjections $projections): void {
+                ->then(function (UpdatedProjections $projections): void {
                     $this->assertUpdatedProjectionsContainExactly([
                         StudentListProjection::class => 1,
                     ], $projections);
@@ -49,14 +49,14 @@ class StudentTest extends TestCase
     {
         $this->scenario->play(
             new Play()
-                ->expectException(
+                ->given(
+                    new RegisterStudentCommand('1', 'John'),
+                )
+                ->when(
+                    new RegisterStudentCommand('1', 'John'),
+                )
+                ->thenExpectException(
                     StudentIdAlreadyUsedException::class,
-                )
-                ->withInitialCommands(
-                    new RegisterStudentCommand('1', 'John'),
-                )
-                ->dispatch(
-                    new RegisterStudentCommand('1', 'John'),
                 ),
         );
     }
@@ -67,11 +67,11 @@ class StudentTest extends TestCase
     {
         $this->scenario->play(
             new Play()
-                ->expectException(
-                    InvalidStudentIdException::class,
-                )
-                ->dispatch(
+                ->when(
                     new RegisterStudentCommand('abc', 'John'),
+                )
+                ->thenExpectException(
+                    InvalidStudentIdException::class,
                 ),
         );
     }

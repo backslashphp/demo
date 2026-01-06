@@ -23,15 +23,15 @@ class CourseCreationTest extends TestCase
     {
         $this->scenario->play(
             new Play()
-                ->dispatch(
+                ->when(
                     new DefineCourseCommand('1', 'Maths', 10),
                 )
-                ->testEvents(function (PublishedEvents $events): void {
+                ->then(function (PublishedEvents $events): void {
                     $this->assertPublishedEventsContainExactly([
                         CourseDefinedEvent::class => 1,
                     ], $events);
                 })
-                ->testProjections(function (UpdatedProjections $projections): void {
+                ->then(function (UpdatedProjections $projections): void {
                     $this->assertUpdatedProjectionsContainExactly([
                         CourseListProjection::class => 1,
                     ], $projections);
@@ -49,14 +49,14 @@ class CourseCreationTest extends TestCase
     {
         $this->scenario->play(
             new Play()
-                ->expectException(
+                ->given(
+                    new CourseDefinedEvent('1', 'Maths', 10),
+                )
+                ->when(
+                    new DefineCourseCommand('1', 'Maths', 10),
+                )
+                ->thenExpectException(
                     CourseIdAlreadyUsedException::class,
-                )
-                ->withInitialCommands(
-                    new DefineCourseCommand('1', 'Maths', 10),
-                )
-                ->dispatch(
-                    new DefineCourseCommand('1', 'Maths', 10),
                 ),
         );
     }
@@ -67,11 +67,11 @@ class CourseCreationTest extends TestCase
     {
         $this->scenario->play(
             new Play()
-                ->expectException(
-                    InvalidCourseIdException::class,
-                )
-                ->dispatch(
+                ->when(
                     new DefineCourseCommand('abc', 'Maths', 10),
+                )
+                ->thenExpectException(
+                    InvalidCourseIdException::class,
                 ),
         );
     }

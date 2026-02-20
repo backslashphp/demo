@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Demo;
 
 use Backslash\CommandDispatcher\DispatcherInterface;
-use Demo\Feature\System\Command\CreateDatabaseCommand;
+use Demo\Feature\Admin\Command\CreateDatabaseCommand;
 use Demo\Infrastructure\Container;
 use Psr\Container\ContainerInterface;
 

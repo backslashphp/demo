@@ -36,27 +36,44 @@ use Backslash\StreamEnricher\StreamEnricherEventBusMiddleware;
 use Backslash\StreamEnricher\StreamEnricherEventStoreMiddleware;
 use Backslash\StreamEnricher\StreamEnricherInterface;
 use Demo\Feature\CourseCapacity\Command\ChangeCourseCapacityCommand;
-use Demo\Feature\CourseCapacity\Command\CourseCapacityHandler;
+use Demo\Feature\CourseCapacity\Command\CourseCapacityCommandHandler;
 use Demo\Feature\CourseCapacity\Event\CourseCapacityChangedEvent;
-use Demo\Feature\CourseCreation\Command\CourseCreationHandler;
-use Demo\Feature\CourseCreation\Command\DefineCourseCommand;
-use Demo\Feature\CourseCreation\Event\CourseDefinedEvent;
+use Demo\Feature\CourseCapacity\Http\ChangeCourseCapacityHandler as ChangeCourseCapacityHttpHandler;
+use Demo\Feature\CourseDefinition\Command\CourseDefinitionCommandHandler;
+use Demo\Feature\CourseDefinition\Command\DefineCourseCommand;
+use Demo\Feature\CourseDefinition\Event\CourseDefinedEvent;
+use Demo\Feature\CourseDefinition\Http\DefineCourseHandler as DefineCourseHttpHandler;
 use Demo\Feature\CourseSubscription\Command\CourseSubscriptionCommandHandler;
 use Demo\Feature\CourseSubscription\Command\SubscribeStudentToCourseCommand;
 use Demo\Feature\CourseSubscription\Command\UnsubscribeStudentFromCourseCommand;
 use Demo\Feature\CourseSubscription\Event\StudentSubscribedToCourseEvent;
 use Demo\Feature\CourseSubscription\Event\StudentUnsubscribedFromCourseEvent;
-use Demo\Feature\Shared\Projection\CourseList\CourseListProjector;
-use Demo\Feature\Shared\Projection\StudentList\StudentListProjector;
+use Demo\Feature\CourseSubscription\Http\SubscribeStudentHandler;
+use Demo\Feature\CourseSubscription\Http\UnsubscribeStudentHandler;
 use Demo\Feature\StudentRegistration\Command\RegisterStudentCommand;
 use Demo\Feature\StudentRegistration\Command\StudentRegistrationCommandHandler;
 use Demo\Feature\StudentRegistration\Event\StudentRegisteredEvent;
-use Demo\Feature\System\Command\CreateDatabaseCommand;
-use Demo\Feature\System\Command\InitializeProjectionsCommand;
-use Demo\Feature\System\Command\PurgeEventsCommand;
-use Demo\Feature\System\Command\PurgeProjectionsCommand;
-use Demo\Feature\System\Command\ResetCommand;
-use Demo\Feature\System\Command\SystemCommandHandler;
+use Demo\Feature\StudentRegistration\Http\RegisterStudentHandler as RegisterStudentHttpHandler;
+use Demo\Feature\Admin\Command\CreateDatabaseCommand;
+use Demo\Feature\Admin\Command\InitializeProjectionsCommand;
+use Demo\Feature\Admin\Command\PurgeEventsCommand;
+use Demo\Feature\Admin\Command\PurgeProjectionsCommand;
+use Demo\Feature\Admin\Command\ResetCommand;
+use Demo\Feature\Admin\Command\SystemCommandHandler;
+use Demo\Feature\Admin\Http\DemoHandler;
+use Demo\Feature\Admin\Http\PurgeProjectionsHandler;
+use Demo\Feature\Admin\Http\RebuildProjectionsHandler;
+use Demo\Feature\Admin\Http\RebuildProjectionsToHandler;
+use Demo\Feature\Admin\Http\ViewEventsHandler;
+use Demo\Feature\Admin\Http\ViewProjectionStoreHandler;
+use Demo\Feature\CourseView\Http\CourseViewHandler;
+use Demo\Feature\CourseView\Projection\CourseProjector;
+use Demo\Feature\CourseListView\Http\CourseListViewHandler;
+use Demo\Feature\CourseListView\Projection\CourseListProjector;
+use Demo\Feature\StudentView\Http\StudentViewHandler;
+use Demo\Feature\StudentView\Projection\StudentProjector;
+use Demo\Feature\StudentListView\Http\StudentListViewHandler;
+use Demo\Feature\StudentListView\Projection\StudentListProjector;
 use PDO;
 use Psr\Container\ContainerInterface;
 use Ramsey\Uuid\Uuid;
@@ -64,10 +81,10 @@ use Ramsey\Uuid\Uuid;
 class Container implements ContainerInterface
 {
     private const COMMAND_HANDLERS = [
-        CourseCapacityHandler::class => [
+        CourseCapacityCommandHandler::class => [
             ChangeCourseCapacityCommand::class,
         ],
-        CourseCreationHandler::class => [
+        CourseDefinitionCommandHandler::class => [
             DefineCourseCommand::class,
         ],
         CourseSubscriptionCommandHandler::class => [
@@ -88,13 +105,18 @@ class Container implements ContainerInterface
 
     private const PROJECTORS = [
         CourseListProjector::class => [
+            CourseDefinedEvent::class,
+        ],
+        CourseProjector::class => [
             CourseCapacityChangedEvent::class,
             CourseDefinedEvent::class,
-            StudentRegisteredEvent::class,
             StudentSubscribedToCourseEvent::class,
             StudentUnsubscribedFromCourseEvent::class,
         ],
         StudentListProjector::class => [
+            StudentRegisteredEvent::class,
+        ],
+        StudentProjector::class => [
             CourseDefinedEvent::class,
             StudentRegisteredEvent::class,
             StudentSubscribedToCourseEvent::class,
@@ -152,18 +174,103 @@ class Container implements ContainerInterface
     private function getServices(): array
     {
         return [
-            CourseCapacityHandler::class => fn (ContainerInterface $c) => new CourseCapacityHandler(
+            // Command handlers
+            CourseCapacityCommandHandler::class => fn (ContainerInterface $c) => new CourseCapacityCommandHandler(
                 $c->get(RepositoryInterface::class),
             ),
-            CourseCreationHandler::class => fn (ContainerInterface $c) => new CourseCreationHandler(
+            CourseDefinitionCommandHandler::class => fn (ContainerInterface $c) => new CourseDefinitionCommandHandler(
                 $c->get(RepositoryInterface::class),
             ),
+            CourseSubscriptionCommandHandler::class => fn (ContainerInterface $c) => new CourseSubscriptionCommandHandler(
+                $c->get(RepositoryInterface::class),
+            ),
+            StudentRegistrationCommandHandler::class => fn (ContainerInterface $c) => new StudentRegistrationCommandHandler(
+                $c->get(RepositoryInterface::class),
+            ),
+            SystemCommandHandler::class => fn (ContainerInterface $c) => new SystemCommandHandler(
+                $c->get(RepositoryInterface::class),
+                $c->get(ProjectionStoreInterface::class),
+                $c->get(EventStoreInterface::class),
+                $c->get(DispatcherInterface::class),
+                $c->get(PdoInterface::class),
+            ),
+
+            // Projectors
             CourseListProjector::class => fn (ContainerInterface $c) => new CourseListProjector(
                 $c->get(ProjectionStoreInterface::class),
             ),
+            CourseProjector::class => fn (ContainerInterface $c) => new CourseProjector(
+                $c->get(ProjectionStoreInterface::class),
+            ),
+            StudentListProjector::class => fn (ContainerInterface $c) => new StudentListProjector(
+                $c->get(ProjectionStoreInterface::class),
+            ),
+            StudentProjector::class => fn (ContainerInterface $c) => new StudentProjector(
+                $c->get(ProjectionStoreInterface::class),
+            ),
+
+            // HTTP handlers — views
+            StudentListViewHandler::class => fn (ContainerInterface $c) => new StudentListViewHandler(
+                $c->get(ProjectionStoreInterface::class),
+            ),
+            StudentViewHandler::class => fn (ContainerInterface $c) => new StudentViewHandler(
+                $c->get(ProjectionStoreInterface::class),
+            ),
+            CourseListViewHandler::class => fn (ContainerInterface $c) => new CourseListViewHandler(
+                $c->get(ProjectionStoreInterface::class),
+            ),
+            CourseViewHandler::class => fn (ContainerInterface $c) => new CourseViewHandler(
+                $c->get(ProjectionStoreInterface::class),
+            ),
+
+            // HTTP handlers — commands
+            RegisterStudentHttpHandler::class => fn (ContainerInterface $c) => new RegisterStudentHttpHandler(
+                $c->get(DispatcherInterface::class),
+            ),
+            DefineCourseHttpHandler::class => fn (ContainerInterface $c) => new DefineCourseHttpHandler(
+                $c->get(DispatcherInterface::class),
+            ),
+            ChangeCourseCapacityHttpHandler::class => fn (ContainerInterface $c) => new ChangeCourseCapacityHttpHandler(
+                $c->get(DispatcherInterface::class),
+            ),
+            SubscribeStudentHandler::class => fn (ContainerInterface $c) => new SubscribeStudentHandler(
+                $c->get(DispatcherInterface::class),
+            ),
+            UnsubscribeStudentHandler::class => fn (ContainerInterface $c) => new UnsubscribeStudentHandler(
+                $c->get(DispatcherInterface::class),
+            ),
+
+            // HTTP handlers — admin
+            DemoHandler::class => fn (ContainerInterface $c) => new DemoHandler(
+                $c->get(DispatcherInterface::class),
+            ),
+            RebuildProjectionsHandler::class => fn (ContainerInterface $c) => new RebuildProjectionsHandler(
+                $c->get(DispatcherInterface::class),
+                $c->get(EventStoreInterface::class),
+                $c->get(EventBusInterface::class),
+                $c->get(StreamEnricherInterface::class),
+                $c->get(ProjectionStoreInterface::class),
+            ),
+            RebuildProjectionsToHandler::class => fn (ContainerInterface $c) => new RebuildProjectionsToHandler(
+                $c->get(DispatcherInterface::class),
+                $c->get(EventStoreInterface::class),
+                $c->get(EventBusInterface::class),
+                $c->get(StreamEnricherInterface::class),
+                $c->get(ProjectionStoreInterface::class),
+            ),
+            PurgeProjectionsHandler::class => fn (ContainerInterface $c) => new PurgeProjectionsHandler(
+                $c->get(DispatcherInterface::class),
+            ),
+            ViewEventsHandler::class => fn (ContainerInterface $c) => new ViewEventsHandler(
+                $c->get(PdoInterface::class),
+            ),
+            ViewProjectionStoreHandler::class => fn (ContainerInterface $c) => new ViewProjectionStoreHandler(
+                $c->get(PdoInterface::class),
+            ),
+
+            // Infrastructure
             DispatcherInterface::class => function (ContainerInterface $c) {
                 $dispatcher = new Dispatcher();
-                $dispatcher->addMiddleware($c->get(ExitOnErrorCommandDispatcherMiddleware::class));
                 $dispatcher->addMiddleware(
                     new ProjectionStoreTransactionCommandDispatcherMiddleware($c->get(ProjectionStoreInterface::class)),
                 );
@@ -193,7 +300,6 @@ class Container implements ContainerInterface
                 $store->addMiddleware(new StreamEnricherEventStoreMiddleware($c->get(StreamEnricherInterface::class)));
                 return $store;
             },
-            ExitOnErrorCommandDispatcherMiddleware::class => fn () => new ExitOnErrorCommandDispatcherMiddleware(),
             PdoInterface::class => function () {
                 $dsn = getenv('TESTING') ? 'sqlite::memory:' : 'sqlite:data/demo.sqlite';
                 return new PdoProxy(fn () => new PDO($dsn));
@@ -214,22 +320,6 @@ class Container implements ContainerInterface
                 $c->get(EventBusInterface::class),
             ),
             StreamEnricherInterface::class => fn () => new StreamEnricher(),
-            StudentRegistrationCommandHandler::class => fn (ContainerInterface $c) => new StudentRegistrationCommandHandler(
-                $c->get(RepositoryInterface::class),
-            ),
-            StudentListProjector::class => fn (ContainerInterface $c) => new StudentListProjector(
-                $c->get(ProjectionStoreInterface::class),
-            ),
-            CourseSubscriptionCommandHandler::class => fn (ContainerInterface $c) => new CourseSubscriptionCommandHandler(
-                $c->get(RepositoryInterface::class),
-            ),
-            SystemCommandHandler::class => fn (ContainerInterface $c) => new SystemCommandHandler(
-                $c->get(RepositoryInterface::class),
-                $c->get(ProjectionStoreInterface::class),
-                $c->get(EventStoreInterface::class),
-                $c->get(DispatcherInterface::class),
-                $c->get(PdoInterface::class),
-            ),
         ];
     }
 }

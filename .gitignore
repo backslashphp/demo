@@ -1,6 +1,14 @@
 .idea/
+.vscode/
+.claude/
 build/
 vendor/
 *.cache
 *.sqlite
+*.log
 composer.lock
+.env
+.env.local
+.env.*.local
+.DS_Store
+Thumbs.db

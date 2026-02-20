@@ -1,169 +1,88 @@
 # Backslash Demo Application
 
-This is a simple console-based application designed to manage students, courses and enrollments.
+Reference web application demonstrating how [Backslash](https://backslashphp.github.io) components work together to power an event-sourced system in PHP.
 
-Its goal is to demonstrate how [Backslash](https://github.com/backslashphp/backslash) components work together in order
-to power event-sourced systems in PHP.
+The domain is student course subscriptions, inspired by the [Dynamic Consistency Boundary](https://dcb.events/examples/course-subscriptions/) by Sara Pellegrini.
 
-The application is interacted with through a few scripts located in the `bin` folder. It relies solely on Backslash for
-simplicity in learning, without using any additional libraries.
+## Getting Started
 
-Featured Backslash components are:
+```sh
+git clone https://github.com/backslashphp/demo
+cd demo
+composer install
+composer serve
+```
 
-- Domain events and states
-- Commands and command handlers
-- Projections
-- Test scenarios
+Open http://localhost:8000 in your browser.
 
-## Domain rules
-
-Rules are inspired by the [Course Subscriptions example](https://dcb.events/examples/course-subscriptions/) of
-the Dynamic Consistency Boundary website.
+## Domain Rules
 
 - A course cannot accept more students than its capacity.
 - The course capacity can change at any time to any positive integer different from the current one.
 - A student cannot subscribe to more than 3 courses.
 
-## Getting started
+## What You Can Do
 
-Start by installing dependencies with Composer:
+- Register students
+- Define courses with a capacity
+- Change course capacity
+- Subscribe and unsubscribe students from courses
 
-```sh
-composer install
-```
+The admin panel lets you load demo data, inspect raw events from the event store, rebuild projections from scratch, or replay them up to a specific event. A great way to observe event sourcing in action.
 
-Move to the `bin` folder and run the `demo.php` script:
+## Explore the Database
 
-```sh
-cd bin
-php demo.php
-```
+Events and projections are persisted in a SQLite database at `data/demo.sqlite`. It is strongly recommended to open it in a database IDE (e.g. [DB Browser for SQLite](https://sqlitebrowser.org/), [DBeaver](https://dbeaver.io/), or the SQLite plugin for PhpStorm/IntelliJ) and inspect its content while interacting with the app.
 
-It initializes the SQLite database in `data/demo.sqlite` where events and projections are persisted. It also runs
-commands to create some demo data.
+You will find:
+- An `event_store` table with all persisted domain events: payload, identifiers, and metadata (including the `correlation_id` added by the StreamEnricher)
+- A `projection_store` table with the current state of all read models
 
-The script outputs projections of students, courses and current subscriptions.
+## Backslash Components
 
-```
------ STUDENTS -----
-[1] John (Biology)
-[2] Mary (Arts, Physics)
-[3] Bill (Physics)
-[4] James
-[5] Lucy
-[6] Brad
-[7] Kelly
-[8] Alice
+This app demonstrates the main userland components of Backslash. Each entry below links to a concrete example in the codebase.
 
------ COURSES -----
-[1] Algebra (0/5)
-[2] Biology (1/4)
-    - John
-[3] Arts (1/3)
-    - Mary
-[4] Physics (2/3)
-    - Mary
-    - Bill
-[5] Grammar (0/4)
-```
+**[Command](src/Feature/StudentRegistration/Command/RegisterStudentCommand.php)**: A simple readonly DTO carrying the intent of the user.
 
-As you play with the scripts, you may open the SQLite database in your favourite IDE to inspect its content.
+**[Command Handler](src/Feature/StudentRegistration/Command/StudentRegistrationCommandHandler.php)**: Loads a model, calls its business methods, and saves changes via the repository.
 
-To understand how all parts of the application are connected, take a look
-at [src/Infrastructure/Container.php](https://github.com/backslashphp/demo/blob/2.x/src/Infrastructure/Container.php).
+**[Event](src/Feature/StudentRegistration/Event/StudentRegisteredEvent.php)**: A readonly class implementing `EventInterface`. Carries what happened, with identifiers for stream querying.
 
-## Usage
+**[Model](src/Feature/StudentRegistration/Model/StudentRegistrationModel.php)**: Extends `AbstractModel`. Business methods call `$this->record(new Event(...))` to emit events. State is rebuilt by `apply*` methods replaying past events from the event store.
 
-> Commands in these examples must be run from the `bin` folder.
+**[Stream Enricher](src/Infrastructure/StreamEnricher.php)**: Middleware that enriches each recorded event's metadata before it is stored and dispatched, adding a `correlation_id` to group all events produced by a single command.
 
-### Register a student
+**[Projection](src/Feature/StudentView/Projection/StudentProjection.php)**: A read model stored in the projection store, tailored for a specific query.
 
-```sh
-php register-student.php --id=123 --name=Max
-```
+**[Projector](src/Feature/StudentView/Projection/StudentProjector.php)**: Implements `EventHandlerInterface`. Subscribed to specific event types on the event bus. Keeps its projection up to date as events are published.
 
-### Create a course
+**[Test Scenario](src/Feature/CourseSubscription/Test/CourseCannotExceedCapacityTest.php)**: Uses `Play` with `given()` / `when()` / `then()` / `thenExpectException()`, executed via `$this->scenario->play()`. See `ScenarioShowcaseTest` for a tour of all available assertions.
 
-```sh
-php define-course.php --id=1000 --name=Geology --capacity=10
-```
+## Bootstrapping
 
-### Change course capacity
+All wiring is declared in [`Container.php`](src/Infrastructure/Container.php): which command handler handles which command, and which projector listens to which event. This is the entry point to understand how a Backslash application is assembled.
 
-```sh
-php change-course-capacity.php --id=1000 --capacity=15
-```
+This app uses a hand-rolled PSR-11 container to wire everything together, but Backslash does not require one. You can assemble the components however you like.
 
-### Subscribe a student to a course
+## Architecture
 
-```sh
-php subscribe.php --student=123 --course=1000
-```
-
-### Unsubscribe a student from a course
-
-```sh
-php unsubscribe.php --student=123 --course=1000
-```
-
-### Output the current state of the system
-
-```sh
-php show.php
-```
-
-## Management scripts
-
-### List events persisted in the event store
-
-```sh
-php events.php
-```
-
-```
-| #  | UID                                  | CLASS                                            | PAYLOAD                                        | IDENTIFIERS                      | METADATA                                                  | TIMESTAMP                        |
-| 1  | 9ffd43a3-dee5-4caa-9d91-6e29c8ae3fd9 | Demo\Domain\Event\StudentRegisteredEvent         | {"studentId":"1","name":"John"}                | {"studentId":"1"}                | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.638777+00:00 |
-| 2  | 33a197d5-a8cc-4ef6-b9be-f63608af5fd0 | Demo\Domain\Event\StudentRegisteredEvent         | {"studentId":"2","name":"Mary"}                | {"studentId":"2"}                | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.654526+00:00 |
-| 3  | 8784f39f-f1bd-472f-a543-426ba4f3ac2e | Demo\Domain\Event\StudentRegisteredEvent         | {"studentId":"3","name":"Bill"}                | {"studentId":"3"}                | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.667294+00:00 |
-| 4  | 231aa070-03bb-43aa-9482-e00052ae1780 | Demo\Domain\Event\StudentRegisteredEvent         | {"studentId":"4","name":"James"}               | {"studentId":"4"}                | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.687732+00:00 |
-| 5  | 9a1fe35d-afe7-4fe9-ae61-213da79326e2 | Demo\Domain\Event\StudentRegisteredEvent         | {"studentId":"5","name":"Lucy"}                | {"studentId":"5"}                | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.702003+00:00 |
-| 6  | c99af1e6-4d9d-4042-955c-567ddae78219 | Demo\Domain\Event\StudentRegisteredEvent         | {"studentId":"6","name":"Brad"}                | {"studentId":"6"}                | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.718004+00:00 |
-| 7  | 3404d47e-25f0-48db-bab2-199feb13880e | Demo\Domain\Event\StudentRegisteredEvent         | {"studentId":"7","name":"Kelly"}               | {"studentId":"7"}                | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.734666+00:00 |
-| 8  | 4770359c-0a0f-4872-971e-134ea2fdc4cb | Demo\Domain\Event\StudentRegisteredEvent         | {"studentId":"8","name":"Alice"}               | {"studentId":"8"}                | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.750996+00:00 |
-| 9  | aa16a7c9-8902-4e91-92da-ef9803e00c63 | Demo\Domain\Event\CourseDefinedEvent             | {"courseId":"1","name":"Algebra","capacity":5} | {"courseId":"1"}                 | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.767753+00:00 |
-| 10 | 776f7f2d-591b-4c2f-86af-e595b8e86a9e | Demo\Domain\Event\CourseDefinedEvent             | {"courseId":"2","name":"Biology","capacity":4} | {"courseId":"2"}                 | {"correlation_id":"b74e7829-2810-4a23-8a44-6e9d9a4f59c3"} | 2025-06-20T02:35:31.783081+00:00 |
-
-...
-```
-
-### Rebuild projections
-
-This script deletes all stored projections and rebuilds them by replaying events.
-
-```bash
-php rebuild-projections.php
-```
-
-```
-No:                 1
-Event:              Demo\Domain\Event\StudentRegisteredEvent
-Timestamp:          2025-06-20T02:38:32.082613+00:00
-
-No:                 2
-Event:              Demo\Domain\Event\StudentRegisteredEvent
-Timestamp:          2025-06-20T02:38:32.098321+00:00
-
-No:                 3
-Event:              Demo\Domain\Event\StudentRegisteredEvent
-Timestamp:          2025-06-20T02:38:32.110229+00:00
-
-...
+```mermaid
+flowchart LR
+    CMD([Command]) --> D[Dispatcher]
+    D --> H[CommandHandler]
+    H --> |load & save| R[Repository]
+    R --> ES[(EventStore)]
+    R --> EB[EventBus]
+    EB --> P[Projectors]
+    P --> PS[(ProjectionStore)]
 ```
 
 ## Testing
 
-Test scenarios can be found in the `tests` folder.
+The codebase follows a [Vertical Slice Architecture](https://www.jimmybogard.com/vertical-slice-architecture/): each feature in `src/Feature/` is a self-contained slice grouping its commands, events, model, and tests. This is why tests live inside each slice (e.g. `src/Feature/CourseSubscription/Test/`) rather than in a traditional top-level `tests/` directory.
 
-```bash
-vendor/bin/phpunit
+[`ScenarioShowcaseTest`](src/ScenarioShowcaseTest.php) is a standalone test at the root of `src/` that showcases all assertions available in the Scenario API, a good starting point to understand what you can express in a test.
+
+```sh
+composer test
 ```

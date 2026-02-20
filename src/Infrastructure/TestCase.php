@@ -11,7 +11,7 @@ use Backslash\ProjectionStore\ProjectionStoreInterface;
 use Backslash\Repository\RepositoryInterface;
 use Backslash\Scenario\AssertionsTrait;
 use Backslash\Scenario\Scenario;
-use Demo\Feature\System\Command\ResetCommand;
+use Demo\Feature\Admin\Command\ResetCommand;
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 use Psr\Container\ContainerInterface;
 
@@ -28,10 +28,6 @@ class TestCase extends PHPUnitTestCase
         parent::setUp();
 
         $this->container = require __DIR__ . '/../../bootstrap.php';
-
-        /** @var ExitOnErrorCommandDispatcherMiddleware $exitOnError */
-        $exitOnError = $this->container->get(ExitOnErrorCommandDispatcherMiddleware::class);
-        $exitOnError->enable(false);
 
         /** @var DispatcherInterface $dispatcher */
         $dispatcher = $this->container->get(DispatcherInterface::class);

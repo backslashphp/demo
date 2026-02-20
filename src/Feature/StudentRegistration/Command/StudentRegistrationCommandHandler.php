@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Demo\Feature\StudentRegistration\Command;
 
-use Demo\Feature\Shared\Command\AbstractCommandHandler;
 use Demo\Feature\StudentRegistration\Model\StudentRegistrationModel;
+use Demo\Infrastructure\AbstractCommandHandler;
 
 class StudentRegistrationCommandHandler extends AbstractCommandHandler
 {

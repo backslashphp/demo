@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Demo\Feature\CourseSubscription\Command;
 
 use Demo\Feature\CourseSubscription\Model\CourseSubscriptionModel;
-use Demo\Feature\Shared\Command\AbstractCommandHandler;
+use Demo\Infrastructure\AbstractCommandHandler;
 
 class CourseSubscriptionCommandHandler extends AbstractCommandHandler
 {

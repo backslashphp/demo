@@ -5,9 +5,12 @@
         "ext-json": "*",
         "ext-pdo": "*",
         "ext-pdo_sqlite": "*",
-        "backslashphp/backslash": "^2.4",
+        "backslashphp/backslash": "^2",
+        "laminas/laminas-diactoros": "^3",
         "psr/container": "^2",
-        "ramsey/uuid": "^4"
+        "ramsey/uuid": "^4",
+        "slim/psr7": "^1",
+        "slim/slim": "^4"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3",
@@ -21,6 +24,7 @@
     },
     "scripts": {
         "format": "php-cs-fixer fix",
+        "serve": "php -S localhost:8000 -t public",
         "test": "phpunit"
     },
     "config": {

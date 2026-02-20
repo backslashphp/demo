@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backslash Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
+    <style>
+        html { font-size: 16px; }
+        html, body { height: 100%; margin: 0; overflow: hidden; background: #dee2e6; }
+        .toast-container { z-index: 1090; }
+        pre.json-cell { margin: 0; white-space: pre-wrap; word-break: break-all; }
+        .quadrant-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            height: calc(100vh - 2.625rem);
+            gap: 1rem;
+            padding: 1rem;
+        }
+        .quadrant {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: #fff;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+        }
+        .quadrant-body { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+        .quadrant h5 { font-size: 1.25rem; margin-bottom: 0.5rem; flex-shrink: 0; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .quadrant .table { font-size: 0.75rem; }
+        .quadrant-domain .table { font-size: 1rem; }
+        .quadrant .badge { font-size: 0.625rem; }
+        .quadrant .form-control-sm, .quadrant .form-select-sm { font-size: 0.75rem; }
+        .quadrant .btn-sm { font-size: 0.75rem; padding: 0.125rem 0.375rem; }
+        .quadrant .list-group-item { padding: 0.375rem 0.625rem; font-size: 0.75rem; }
+        .scroll-table { flex: 1; overflow: auto; min-height: 0; }
+        .scroll-table th { position: sticky; top: 0; background: #f8f9fa; z-index: 5; }
+        .scroll-content { flex: 1; overflow-y: auto; min-height: 0; }
+        .quadrant-students { grid-column: 1; grid-row: 1; }
+        .quadrant-event-store { grid-column: 2; grid-row: 1 / span 2; }
+        .quadrant-courses { grid-column: 1; grid-row: 2; }
+        .quadrant-projection-store { grid-column: 3; grid-row: 1 / span 2; }
+        @media (max-width: 1399px) {
+            .quadrant-grid { grid-template-columns: 1fr 1fr; }
+            .quadrant-event-store { grid-row: 1; }
+            .quadrant-projection-store { grid-column: 2; grid-row: 2; }
+        }
+        .highlight-new, .highlight-new td {
+            background-color: #fff3cd !important;
+        }
+        .highlight-out, .highlight-out td {
+            background-color: transparent !important;
+            transition: background-color 1s ease-out !important;
+        }
+        .event-card {
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 0.5rem 0.625rem;
+            margin-bottom: 0.5rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+        .event-props { flex: 1; min-width: 0; }
+        .event-row { display: flex; gap: 0.75rem; margin-bottom: 0.125rem; overflow-wrap: anywhere; }
+        .event-label { min-width: 6rem; color: #6c757d; flex-shrink: 0; }
+        /* Guided tour */
+        [x-cloak] { display: none !important; }
+        .tour-backdrop { position: fixed; inset: 0; z-index: 9997; }
+        .tour-overlay-dark { position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.55); }
+        .tour-spotlight {
+            position: fixed; z-index: 9998; border-radius: 8px;
+            box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+            background: rgba(255,255,255,0.2);
+            transition: top 0.35s ease, left 0.35s ease, width 0.35s ease, height 0.35s ease;
+            pointer-events: none;
+        }
+        .tour-popup {
+            position: fixed; z-index: 10000; background: #1e1e2e; border-radius: 12px;
+            padding: 1.5rem; max-width: 440px; width: 440px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+            color: #e0e0f0;
+        }
+        .tour-popup h6 { font-size: 1.1rem; margin-bottom: 0.75rem; color: #fff; }
+        .tour-popup p { font-size: 0.9rem; color: #a0a0c0; margin-bottom: 1rem; line-height: 1.5; }
+        .tour-dots { display: flex; gap: 6px; align-items: center; }
+        .tour-dot { width: 8px; height: 8px; border-radius: 50%; background: #444466; transition: background 0.2s; }
+        .tour-dot.active { background: #6ea8fe; }
+        .tour-popup .btn-link { color: #7070a0 !important; }
+        .tour-popup .btn-link:hover { color: #a0a0c0 !important; }
+    </style>
+</head>
+<body>
+
+<div x-data="app()" x-init="init()">
+
+    <!-- Top bar -->
+    <nav class="navbar navbar-dark bg-dark px-3 py-1" style="height: 2.625rem;">
+        <span class="navbar-brand mb-0 h6">Backslash Demo</span>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-primary" data-tour="restart-demo" @click="runDemo()">Restart Demo</button>
+        </div>
+    </nav>
+
+    <!-- Toast -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <template x-for="t in toasts" :key="t.id">
+            <div class="toast show align-items-center border-0" :class="t.type === 'danger' ? 'bg-danger text-white' : 'bg-success text-white'" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body" x-text="t.message"></div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" @click="removeToast(t.id)"></button>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- Guided Tour -->
+    <div x-show="tourActive" x-cloak>
+        <div class="tour-backdrop"></div>
+        <div x-show="!tourRect" class="tour-overlay-dark"></div>
+        <div x-show="!!tourRect" class="tour-spotlight"
+             :style="tourRect ? `top:${tourRect.y-10}px;left:${tourRect.x-10}px;width:${tourRect.w+20}px;height:${tourRect.h+20}px` : ''">
+        </div>
+        <div class="tour-popup" x-transition.opacity.duration.300ms :style="tourPopupStyle()">
+            <h6 x-text="tourCurrentStep().title"></h6>
+            <template x-for="(p, i) in tourCurrentStep().text" :key="i">
+                <p x-text="p"></p>
+            </template>
+            <template x-if="tourStep === 0">
+                <div class="d-flex justify-content-end gap-2">
+                    <button class="btn btn-sm btn-outline-secondary" @click="tourEnd()">No thanks</button>
+                    <button class="btn btn-sm btn-primary" @click="tourNext()">Yes, let's go!</button>
+                </div>
+            </template>
+            <template x-if="tourStep > 0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="tour-dots">
+                        <template x-for="(_, i) in tourGetSteps().slice(1)" :key="i">
+                            <div class="tour-dot" :class="i === tourStep - 1 ? 'active' : ''"></div>
+                        </template>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <button class="btn btn-sm btn-link text-muted" @click="tourEnd()">Skip</button>
+                        <button class="btn btn-sm btn-primary" @click="tourNext()">
+                            <span x-text="tourStep >= tourGetSteps().length - 1 ? 'Finish' : 'Next'"></span>
+                        </button>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- 4 quadrants -->
+    <div class="quadrant-grid">
+
+        <!-- LEFT-TOP: Students -->
+        <div class="quadrant quadrant-domain quadrant-students" data-tour="students">
+
+            <!-- Student List -->
+            <template x-if="studentView === 'list'">
+                <div class="quadrant-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">Students <span class="badge bg-secondary" x-text="students.length"></span></h5>
+                        <button class="btn btn-sm btn-outline-success" @click="studentView = 'new'; form = {}">
+                            <i class="bi bi-plus-lg"></i> Register student
+                        </button>
+                    </div>
+                    <div class="scroll-table">
+                        <table class="table table-sm table-striped table-hover mb-0">
+                            <thead><tr><th>ID</th><th>Name</th><th>Enrollments</th><th></th></tr></thead>
+                            <tbody>
+                                <template x-for="s in students" :key="s.studentId">
+                                    <tr style="cursor:pointer" @click="selectStudent(s.studentId)">
+                                        <td x-text="s.studentId"></td>
+                                        <td x-text="s.name"></td>
+                                        <td>
+                                            <template x-for="e in s.enrollments" :key="e.courseId">
+                                                <span class="badge bg-info me-1" x-text="e.courseName"></span>
+                                            </template>
+                                        </td>
+                                        <td class="text-muted" x-text="s.enrollments.length + '/3'"></td>
+                                    </tr>
+                                </template>
+                                <tr x-show="students.length === 0"><td colspan="4" class="text-muted fst-italic">No students</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Student Detail -->
+            <template x-if="studentView === 'detail'">
+                <div class="quadrant-body">
+                    <template x-if="student">
+                        <div class="scroll-content">
+                            <h5>
+                                <span class="text-primary" style="cursor:pointer" @click="studentView = 'list'">Students</span>
+                                <span class="text-muted"> / </span>
+                                <span x-text="student.name"></span>
+                            </h5>
+
+                            <h6 style="font-size:0.875rem">Enrollments</h6>
+                            <ul class="list-group mb-2">
+                                <template x-for="e in student.enrollments" :key="e.courseId">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span class="text-primary" style="cursor:pointer" @click="selectCourse(e.courseId)" x-text="e.courseName"></span>
+                                        <button class="btn btn-sm btn-outline-danger" @click="unsubscribe(student.studentId, e.courseId)">Unsubscribe</button>
+                                    </li>
+                                </template>
+                                <li class="list-group-item text-muted fst-italic" x-show="student.enrollments.length === 0">No enrollments</li>
+                            </ul>
+
+                            <h6 style="font-size:0.875rem">Subscribe to course</h6>
+                            <form @submit.prevent="subscribeFromDetail()" class="d-flex gap-2 align-items-center">
+                                <select x-model="subscribeCourseId" class="form-select form-select-sm" required style="max-width:12.5rem">
+                                    <option value="">Select course...</option>
+                                    <template x-for="c in courses" :key="c.courseId">
+                                        <option :value="c.courseId" x-text="c.name + ' (' + c.subscriptions.length + '/' + c.capacity + ')'"></option>
+                                    </template>
+                                </select>
+                                <button class="btn btn-sm btn-primary">Subscribe</button>
+                            </form>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <!-- Register Student -->
+            <template x-if="studentView === 'new'">
+                <div class="quadrant-body">
+                    <h5>Register Student</h5>
+                    <form @submit.prevent="registerStudent()">
+                        <div class="mb-2">
+                            <label class="form-label form-label-sm mb-0">ID</label>
+                            <input type="number" x-model="form.id" class="form-control form-control-sm" min="1" required x-init="$el.focus()">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label form-label-sm mb-0">Name</label>
+                            <input type="text" x-model="form.name" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-success">Register</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" @click="studentView = 'list'">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </template>
+
+        </div>
+
+        <!-- MIDDLE: Event Store -->
+        <div class="quadrant quadrant-event-store" data-tour="event-store">
+            <h5 class="flex-shrink-0">Event Store <span class="badge bg-secondary" x-text="events.length"></span></h5>
+            <div class="scroll-content">
+                <template x-for="e in events" :key="e.sequence">
+                    <div class="event-card" :data-seq="e.sequence">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div class="event-props">
+                                <div class="event-row"><span class="event-label">seq</span><span x-text="e.sequence"></span></div>
+                                <div class="event-row"><span class="event-label">uid</span><span x-text="e.event_uid"></span></div>
+                                <div class="event-row"><span class="event-label">name</span><span x-text="e.event_name.split('\\').pop()"></span></div>
+                                <div class="event-row"><span class="event-label">payload</span><pre class="json-cell" x-text="prettyJson(e.event_payload)"></pre></div>
+                                <div class="event-row"><span class="event-label">identifiers</span><pre class="json-cell" x-text="prettyJson(e.event_identifiers)"></pre></div>
+                                <div class="event-row"><span class="event-label">metadata</span><pre class="json-cell" x-text="prettyJson(e.event_metadata)"></pre></div>
+                                <div class="event-row"><span class="event-label">time</span><span x-text="e.event_time"></span></div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary flex-shrink-0" title="Rebuild projections up to this event" @click="rebuildTo(e.sequence)">
+                                <i class="bi bi-clock-history"></i>
+                            </button>
+                        </div>
+                    </div>
+                </template>
+                <p x-show="events.length === 0" class="text-muted fst-italic">No events</p>
+            </div>
+        </div>
+
+        <!-- LEFT-BOTTOM: Courses -->
+        <div class="quadrant quadrant-domain quadrant-courses">
+
+            <!-- Course List -->
+            <template x-if="courseView === 'list'">
+                <div class="quadrant-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">Courses <span class="badge bg-secondary" x-text="courses.length"></span></h5>
+                        <button class="btn btn-sm btn-outline-success" @click="courseView = 'new'; form = {}">
+                            <i class="bi bi-plus-lg"></i> Define course
+                        </button>
+                    </div>
+                    <div class="scroll-table">
+                        <table class="table table-sm table-striped table-hover mb-0">
+                            <thead><tr><th>ID</th><th>Name</th><th>Capacity</th><th>Subscriptions</th></tr></thead>
+                            <tbody>
+                                <template x-for="c in courses" :key="c.courseId">
+                                    <tr style="cursor:pointer" @click="selectCourse(c.courseId)">
+                                        <td x-text="c.courseId"></td>
+                                        <td x-text="c.name"></td>
+                                        <td x-text="c.subscriptions.length + '/' + c.capacity"></td>
+                                        <td x-text="c.subscriptions.length"></td>
+                                    </tr>
+                                </template>
+                                <tr x-show="courses.length === 0"><td colspan="4" class="text-muted fst-italic">No courses</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Course Detail -->
+            <template x-if="courseView === 'detail'">
+                <div class="quadrant-body">
+                    <template x-if="course">
+                        <div class="scroll-content">
+                            <h5>
+                                <span class="text-primary" style="cursor:pointer" @click="courseView = 'list'">Courses</span>
+                                <span class="text-muted"> / </span>
+                                <span x-text="course.name"></span>
+                            </h5>
+
+                            <form class="mb-2 d-flex gap-2 align-items-center" @submit.prevent="changeCapacity()">
+                                <strong style="font-size:0.875rem">Capacity:</strong>
+                                <span x-text="course.subscriptions.length + '/'"></span>
+                                <input type="number" x-model="form.capacity" :placeholder="course.capacity" class="form-control form-control-sm" style="width:4.375rem;" min="1" required>
+                                <button class="btn btn-sm btn-primary">Change capacity</button>
+                            </form>
+
+                            <h6 style="font-size:0.875rem">Subscribed Students</h6>
+                            <ul class="list-group mb-2">
+                                <template x-for="sid in course.subscriptions" :key="sid">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span class="text-primary" style="cursor:pointer" @click="selectStudent(sid)" x-text="studentName(sid)"></span>
+                                        <button class="btn btn-sm btn-outline-danger" @click="unsubscribe(sid, course.courseId)">Unsubscribe</button>
+                                    </li>
+                                </template>
+                                <li class="list-group-item text-muted fst-italic" x-show="course.subscriptions.length === 0">No students subscribed</li>
+                            </ul>
+
+                            <h6 style="font-size:0.875rem">Subscribe a student</h6>
+                            <form @submit.prevent="subscribeFromCourseDetail()" class="d-flex gap-2 align-items-center">
+                                <select x-model="subscribeStudentId" class="form-select form-select-sm" required style="max-width:12.5rem">
+                                    <option value="">Select student...</option>
+                                    <template x-for="s in students" :key="s.studentId">
+                                        <option :value="s.studentId" x-text="s.name"></option>
+                                    </template>
+                                </select>
+                                <button class="btn btn-sm btn-primary">Subscribe</button>
+                            </form>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <!-- Define Course -->
+            <template x-if="courseView === 'new'">
+                <div class="quadrant-body">
+                    <h5>Define Course</h5>
+                    <form @submit.prevent="defineCourse()">
+                        <div class="mb-2">
+                            <label class="form-label form-label-sm mb-0">ID</label>
+                            <input type="number" x-model="form.id" class="form-control form-control-sm" min="1" required x-init="$el.focus()">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label form-label-sm mb-0">Name</label>
+                            <input type="text" x-model="form.name" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label form-label-sm mb-0">Capacity</label>
+                            <input type="number" x-model="form.capacity" class="form-control form-control-sm" min="1" required>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-success">Define</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" @click="courseView = 'list'">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </template>
+
+        </div>
+
+        <!-- RIGHT: Projection Store -->
+        <div class="quadrant quadrant-projection-store" data-tour="projection-store">
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-shrink-0">
+                <h5 class="mb-0">Projection Store <span class="badge bg-secondary" x-text="projectionStore.length"></span></h5>
+                <div class="d-flex gap-1" data-tour="admin-buttons">
+                    <button class="btn btn-sm btn-outline-secondary" @click="adminAction('/api/admin/rebuild-projections')">Rebuild projections</button>
+                    <button class="btn btn-sm btn-outline-danger" @click="adminAction('/api/admin/purge-projections')">Delete projections</button>
+                </div>
+            </div>
+            <div class="scroll-content">
+                <template x-for="p in projectionStore" :key="p.projection_class + ':' + p.projection_id">
+                    <div class="event-card" :data-proj-key="encodeURIComponent(p.projection_class + ':' + p.projection_id)">
+                        <div class="event-props">
+                            <div class="event-row"><span class="event-label">id</span><span x-text="p.projection_id"></span></div>
+                            <div class="event-row"><span class="event-label">class</span><span x-text="p.projection_class.split('\\').pop()"></span></div>
+                            <div class="event-row"><span class="event-label">payload</span><pre class="json-cell" x-text="prettyJson(p.projection_payload)"></pre></div>
+                        </div>
+                    </div>
+                </template>
+                <p x-show="projectionStore.length === 0" class="text-muted fst-italic">No projections</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function app() {
+    return {
+        // View state per quadrant
+        studentView: 'list',   // 'list' | 'detail' | 'new'
+        courseView: 'list',     // 'list' | 'detail' | 'new'
+
+        // Data
+        students: [],
+        courses: [],
+        events: [],
+        projectionStore: [],
+        student: null,
+        course: null,
+
+        // Form
+        form: {},
+        subscribeCourseId: '',
+        subscribeStudentId: '',
+
+        // Event highlight
+        lastMaxSequence: -1,
+
+        // Projection highlight/sort
+        projectionHashes: {},
+
+        // Toasts
+        toasts: [],
+        toastId: 0,
+
+        // Tour
+        tourActive: false,
+        tourStep: 0,
+        tourRect: null,
+
+        init() {
+            if (!sessionStorage.getItem('tourDone')) {
+                this.startFreshDemo();
+            } else {
+                this.loadAll();
+            }
+        },
+
+        async startFreshDemo() {
+            await fetch('/api/admin/demo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+            await this.loadAll();
+            this.tourStep = 0;
+            this.tourRect = null;
+            this.tourActive = true;
+        },
+
+        async loadAll() {
+            const prevMax = this.lastMaxSequence;
+            const [students, courses, events, projectionStore] = await Promise.all([
+                this.api('/api/students'),
+                this.api('/api/courses'),
+                this.api('/api/admin/events'),
+                this.api('/api/admin/projections'),
+            ]);
+            if (events.length > 0) {
+                this.lastMaxSequence = Number(events[0].sequence);
+            }
+            this.students = students;
+            this.courses = courses;
+            this.events = events;
+
+            // Detect changed projections
+            const changedKeys = new Set();
+            const newHashes = {};
+            for (const p of projectionStore) {
+                const key = encodeURIComponent(p.projection_class + ':' + p.projection_id);
+                if (key in this.projectionHashes && this.projectionHashes[key] !== p.projection_payload) {
+                    changedKeys.add(key);
+                }
+                newHashes[key] = p.projection_payload;
+            }
+            this.projectionHashes = newHashes;
+
+            // Sort: changed first, then by class:id
+            projectionStore.sort((a, b) => {
+                const ak = encodeURIComponent(a.projection_class + ':' + a.projection_id);
+                const bk = encodeURIComponent(b.projection_class + ':' + b.projection_id);
+                const ac = changedKeys.has(ak) ? 0 : 1;
+                const bc = changedKeys.has(bk) ? 0 : 1;
+                if (ac !== bc) return ac - bc;
+                return ak.localeCompare(bk);
+            });
+            this.projectionStore = projectionStore;
+
+            // Highlight new events
+            if (prevMax >= 0) {
+                setTimeout(() => {
+                    document.querySelectorAll('[data-seq]').forEach(el => {
+                        if (Number(el.dataset.seq) > prevMax) {
+                            el.classList.add('highlight-new');
+                            setTimeout(() => {
+                                el.classList.remove('highlight-new');
+                                el.classList.add('highlight-out');
+                            }, 3000);
+                        }
+                    });
+                }, 100);
+            }
+
+            // Highlight changed projections
+            if (changedKeys.size > 0) {
+                setTimeout(() => {
+                    changedKeys.forEach(key => {
+                        const el = document.querySelector(`[data-proj-key="${key}"]`);
+                        if (el) {
+                            el.classList.add('highlight-new');
+                            setTimeout(() => {
+                                el.classList.remove('highlight-new');
+                                el.classList.add('highlight-out');
+                            }, 3000);
+                        }
+                    });
+                }, 100);
+            }
+        },
+
+        async selectStudent(id) {
+            this.student = await this.api('/api/students/' + id);
+            this.subscribeCourseId = '';
+            this.studentView = 'detail';
+        },
+
+        async selectCourse(id) {
+            this.course = await this.api('/api/courses/' + id);
+            this.subscribeStudentId = '';
+            this.form = {};
+            this.courseView = 'detail';
+        },
+
+        async api(url) {
+            const res = await fetch(url);
+            if (res.status === 404) return [];
+            if (!res.ok) return [];
+            return res.json();
+        },
+
+        async postAction(url, body) {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body || {}),
+            });
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                this.toast(data.error || 'An error occurred', 'danger');
+                return false;
+            }
+            this.toast('OK', 'success');
+            return true;
+        },
+
+        async registerStudent() {
+            if (await this.postAction('/api/register-student', this.form)) {
+                this.studentView = 'list';
+                this.loadAll();
+            }
+        },
+
+        async defineCourse() {
+            if (await this.postAction('/api/define-course', this.form)) {
+                this.courseView = 'list';
+                this.loadAll();
+            }
+        },
+
+        async subscribeFromDetail() {
+            if (await this.postAction('/api/subscribe', { studentId: this.student.studentId, courseId: this.subscribeCourseId })) {
+                this.subscribeCourseId = '';
+                this.student = await this.api('/api/students/' + this.student.studentId);
+                this.loadAll();
+            }
+        },
+
+        async subscribeFromCourseDetail() {
+            if (await this.postAction('/api/subscribe', { studentId: this.subscribeStudentId, courseId: this.course.courseId })) {
+                this.subscribeStudentId = '';
+                this.course = await this.api('/api/courses/' + this.course.courseId);
+                this.loadAll();
+            }
+        },
+
+        async unsubscribe(studentId, courseId) {
+            if (await this.postAction('/api/unsubscribe', { studentId, courseId })) {
+                if (this.studentView === 'detail' && this.student) {
+                    this.student = await this.api('/api/students/' + this.student.studentId);
+                }
+                if (this.courseView === 'detail' && this.course) {
+                    this.course = await this.api('/api/courses/' + this.course.courseId);
+                }
+                this.loadAll();
+            }
+        },
+
+        async changeCapacity() {
+            if (await this.postAction('/api/change-capacity', { id: this.course.courseId, capacity: this.form.capacity })) {
+                this.course = await this.api('/api/courses/' + this.course.courseId);
+                this.loadAll();
+            }
+        },
+
+        async runDemo() {
+            if (await this.postAction('/api/admin/demo')) {
+                this.studentView = 'list';
+                this.courseView = 'list';
+                this.loadAll();
+            }
+        },
+
+        async adminAction(url) {
+            if (await this.postAction(url)) {
+                this.studentView = 'list';
+                this.courseView = 'list';
+                this.loadAll();
+            }
+        },
+
+        async rebuildTo(sequence) {
+            if (await this.postAction('/api/admin/rebuild-projections-to/' + sequence)) {
+                await this.loadAll();
+                await this.reloadDetails();
+            }
+        },
+
+        async reloadDetails() {
+            if (this.studentView === 'detail' && this.student) {
+                const s = await this.api('/api/students/' + this.student.studentId);
+                if (s && s.studentId) { this.student = s; } else { this.student = null; this.studentView = 'list'; }
+            }
+            if (this.courseView === 'detail' && this.course) {
+                const c = await this.api('/api/courses/' + this.course.courseId);
+                if (c && c.courseId) { this.course = c; } else { this.course = null; this.courseView = 'list'; }
+            }
+        },
+
+        prettyJson(str) {
+            try { return JSON.stringify(JSON.parse(str), null, 2); } catch { return str; }
+        },
+
+        studentName(id) {
+            const s = this.students.find(s => s.studentId === id);
+            return s ? s.name : id;
+        },
+
+        toast(message, type) {
+            if (this.tourActive && type !== 'danger') return;
+            const id = ++this.toastId;
+            this.toasts.push({ id, message, type });
+            setTimeout(() => this.removeToast(id), 3000);
+        },
+
+        removeToast(id) {
+            this.toasts = this.toasts.filter(t => t.id !== id);
+        },
+
+        // --- Guided Tour ---
+
+        tourGetSteps() {
+            return [
+                {
+                    title: 'Welcome to the Backslash Demo',
+                    text: [
+                        "This demo illustrates how Backslash implements CQRS and event sourcing in PHP. Sample data has been pre-loaded.",
+                        "Would you like a quick guided tour of the interface?",
+                    ],
+                    target: null,
+                },
+                {
+                    title: 'Four Panels',
+                    text: [
+                        "The interface has four panels.",
+                        "On the left, the domain: Students and Courses, where you can dispatch commands to trigger state changes.",
+                        "On the right, the infrastructure: the Event Store and the Projection Store, updating in real time as you interact.",
+                    ],
+                    target: null,
+                },
+                {
+                    title: 'Event Store',
+                    text: [
+                        "Every action dispatches a command that produces immutable domain events stored here. The Event Store is the single source of truth: events are never modified or deleted.",
+                        "Under the hood, it is a single 7-column SQLite table.",
+                        "Try creating a student or a course and watch new events appear highlighted in yellow.",
+                    ],
+                    target: '[data-tour="event-store"]',
+                },
+                {
+                    title: 'Projection Store',
+                    text: [
+                        "Projections are read models derived from events, powering the Students and Courses panels. Under the hood, it is a single 3-column SQLite table.",
+                        "Unlike events, projections are volatile: losing them to a crash or accidental deletion is not a problem, because they can always be fully rebuilt from the Event Store.",
+                        "Recently updated projections bubble to the top, highlighted in yellow.",
+                    ],
+                    target: '[data-tour="projection-store"]',
+                },
+                {
+                    title: 'Rebuild Projections',
+                    text: [
+                        "These buttons let you delete or rebuild projections at any time. This is safe because the Event Store is never touched.",
+                    ],
+                    target: '[data-tour="admin-buttons"]',
+                },
+                {
+                    title: 'Time Travel',
+                    text: [
+                        "The clock icon next to any event rebuilds projections up to that exact point in time, letting you inspect any past state of the system.",
+                    ],
+                    target: '.quadrant-event-store .btn-outline-secondary',
+                },
+                {
+                    title: 'Your Turn!',
+                    text: [
+                        "Now it's time to play. Register students, define courses, subscribe and unsubscribe, and watch the Event Store and Projection Store react in real time.",
+                        "Enjoy!",
+                    ],
+                    target: '.quadrant-students .btn-outline-success',
+                },
+            ];
+        },
+
+        tourCurrentStep() {
+            return this.tourGetSteps()[this.tourStep] || {};
+        },
+
+        tourNext() {
+            const steps = this.tourGetSteps();
+            if (this.tourStep >= steps.length - 1) {
+                this.tourEnd();
+            } else {
+                this.tourStep++;
+                this.tourUpdatePosition();
+            }
+        },
+
+        tourEnd() {
+            this.tourActive = false;
+            sessionStorage.setItem('tourDone', '1');
+        },
+
+        tourUpdatePosition() {
+            const sel = this.tourGetSteps()[this.tourStep]?.target;
+            if (!sel) { this.tourRect = null; return; }
+            const el = document.querySelector(sel);
+            if (el) {
+                const r = el.getBoundingClientRect();
+                this.tourRect = { y: r.top, x: r.left, w: r.width, h: r.height };
+            } else {
+                this.tourRect = null;
+            }
+        },
+
+        tourPopupStyle() {
+            return 'top:50%;left:50%;transform:translate(-50%,-50%)';
+        },
+    };
+}
+</script>
+
+</body>
+</html>

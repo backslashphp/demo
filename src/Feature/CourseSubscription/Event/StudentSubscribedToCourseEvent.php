@@ -20,11 +20,9 @@ readonly class StudentSubscribedToCourseEvent implements EventInterface
 
     public function getIdentifiers(): Identifiers
     {
-        return new Identifiers(
-            [
+        return new Identifiers([
             'studentId' => $this->studentId,
             'courseId' => $this->courseId,
-            ],
-        );
+        ]);
     }
 }

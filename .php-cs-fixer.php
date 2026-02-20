@@ -3,7 +3,7 @@
 use PhpCsFixer\Config;
 
 $finder = PhpCsFixer\Finder::create()
-    ->in(__DIR__ . '/bin')
+    ->in(__DIR__ . '/public')
     ->in(__DIR__ . '/src');
 
 return (new Config())
@@ -14,6 +14,9 @@ return (new Config())
             '@PHP80Migration:risky' => true,
             '@PHP81Migration' => true,
             '@PHP82Migration' => true,
+            '@PHP82Migration:risky' => true,
+            '@PHP83Migration' => true,
+            '@PHP84Migration' => true,
             'ordered_class_elements' => [
                 'order' => [
                     'use_trait',

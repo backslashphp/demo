@@ -10,8 +10,8 @@ use Backslash\EventStore\Query\QueryInterface;
 use Backslash\Model\AbstractModel;
 use Demo\Feature\CourseCapacity\Event\CourseCapacityChangedEvent;
 use Demo\Feature\CourseCapacity\Exception\InvalidCourseCapacityException;
-use Demo\Feature\CourseCreation\Event\CourseDefinedEvent;
-use Demo\Feature\CourseCreation\Exception\CourseNotDefinedException;
+use Demo\Feature\CourseDefinition\Event\CourseDefinedEvent;
+use Demo\Feature\CourseDefinition\Exception\CourseNotDefinedException;
 
 class CourseCapacityModel extends AbstractModel
 {

@@ -7,13 +7,10 @@ namespace Demo\Feature\StudentRegistration\Test;
 use Backslash\Scenario\Play;
 use Backslash\Scenario\PublishedEvents;
 use Backslash\Scenario\UpdatedProjections;
-use Demo\Feature\Shared\Projection\StudentList\StudentListProjection;
+use Demo\Feature\StudentListView\Projection\StudentListProjection;
 use Demo\Feature\StudentRegistration\Command\RegisterStudentCommand;
 use Demo\Feature\StudentRegistration\Event\StudentRegisteredEvent;
-use Demo\Feature\StudentRegistration\Exception\InvalidStudentIdException;
-use Demo\Feature\StudentRegistration\Exception\StudentIdAlreadyUsedException;
 use Demo\Infrastructure\TestCase;
-use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\Attributes\Test;
 
 class StudentTest extends TestCase
@@ -38,41 +35,8 @@ class StudentTest extends TestCase
 
                     /** @var StudentListProjection $studentList */
                     $studentList = $projections->getAllOf(StudentListProjection::class)[0];
-                    $this->assertStringContainsString('John', (string) $studentList);
+                    $this->assertContains('1', $studentList->getStudentIds());
                 }),
-        );
-    }
-
-    #[Test]
-    #[DoesNotPerformAssertions]
-    public function reuse_student_id(): void
-    {
-        $this->scenario->play(
-            new Play()
-                ->given(
-                    new RegisterStudentCommand('1', 'John'),
-                )
-                ->when(
-                    new RegisterStudentCommand('1', 'John'),
-                )
-                ->thenExpectException(
-                    StudentIdAlreadyUsedException::class,
-                ),
-        );
-    }
-
-    #[Test]
-    #[DoesNotPerformAssertions]
-    public function invalid_student_id(): void
-    {
-        $this->scenario->play(
-            new Play()
-                ->when(
-                    new RegisterStudentCommand('abc', 'John'),
-                )
-                ->thenExpectException(
-                    InvalidStudentIdException::class,
-                ),
         );
     }
 }

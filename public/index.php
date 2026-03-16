@@ -29,12 +29,15 @@ use Demo\Feature\CourseView\Http\CourseViewHandler;
 use Demo\Feature\CourseListView\Http\CourseListViewHandler;
 use Demo\Feature\StudentView\Http\StudentViewHandler;
 use Demo\Feature\StudentListView\Http\StudentListViewHandler;
+use Demo\Infrastructure\SharedModeMiddleware;
 use Laminas\Diactoros\Response\HtmlResponse;
 use Laminas\Diactoros\Response\JsonResponse;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Factory\AppFactory;
 use Slim\Handlers\Strategies\RequestHandler;
 
+/** @var ContainerInterface $container */
 $container = require __DIR__ . '/../bootstrap.php';
 
 AppFactory::setContainer($container);
@@ -43,6 +46,9 @@ $app = AppFactory::create();
 $app->getRouteCollector()->setDefaultInvocationStrategy(new RequestHandler(true));
 $app->addBodyParsingMiddleware();
 $app->addRoutingMiddleware();
+if (getenv('APP_SHARED')) {
+    $app->add($container->get(SharedModeMiddleware::class));
+}
 
 // Error middleware: domain exceptions → 422 JSON
 $errorMiddleware = $app->addErrorMiddleware(false, false, false);

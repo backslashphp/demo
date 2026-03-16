@@ -301,7 +301,9 @@ class Container implements ContainerInterface
                 return $store;
             },
             PdoInterface::class => function () {
-                $dsn = getenv('TESTING') ? 'sqlite::memory:' : 'sqlite:data/demo.sqlite';
+                $dsn = (getenv('TESTING') || getenv('APP_SHARED'))
+                    ? 'sqlite::memory:'
+                    : 'sqlite:data/demo.sqlite';
                 return new PdoProxy(fn () => new PDO($dsn));
             },
             ProjectionStoreInterface::class => function (ContainerInterface $c) {
@@ -319,6 +321,7 @@ class Container implements ContainerInterface
                 $c->get(EventStoreInterface::class),
                 $c->get(EventBusInterface::class),
             ),
+            SharedModeMiddleware::class => fn (ContainerInterface $c) => new SharedModeMiddleware($c->get(PdoInterface::class)),
             StreamEnricherInterface::class => fn () => new StreamEnricher(),
         ];
     }

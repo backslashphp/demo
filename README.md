@@ -4,6 +4,8 @@ Reference web application demonstrating how [Backslash](https://backslashphp.git
 
 The domain is student course subscriptions, inspired by the [Dynamic Consistency Boundary](https://dcb.events/examples/course-subscriptions/) by Sara Pellegrini.
 
+**Try it live at [backslashphp-demo.maximegosselin.com](https://backslashphp-demo.maximegosselin.com)**
+
 ## Getting Started
 
 ```sh

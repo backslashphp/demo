@@ -7,6 +7,10 @@ namespace Demo;
 use Backslash\CommandDispatcher\DispatcherInterface;
 use Demo\Feature\Admin\Command\CreateDatabaseCommand;
 use Demo\Infrastructure\Container;
+use Dotenv\Dotenv;
+use Dotenv\Repository\Adapter\EnvConstAdapter;
+use Dotenv\Repository\Adapter\PutenvAdapter;
+use Dotenv\Repository\RepositoryBuilder;
 use Psr\Container\ContainerInterface;
 
 return (function (): ContainerInterface {
@@ -20,6 +24,14 @@ return (function (): ContainerInterface {
         exit(1);
     }
     include_once 'vendor/autoload.php';
+
+    $repository = RepositoryBuilder::createWithNoAdapters()
+        ->addAdapter(EnvConstAdapter::class)
+        ->addWriter(PutenvAdapter::class)
+        ->immutable()
+        ->make();
+    $dotenv = Dotenv::create($repository, __DIR__);
+    $dotenv->safeLoad();
 
     $container = new Container();
 

@@ -34,7 +34,7 @@ class CourseDefinitionModel extends AbstractModel
         if ($capacity <= 0) {
             throw new InvalidCourseCapacityException();
         }
-        $this->record(new CourseDefinedEvent($courseId, $name, $capacity));
+        $this->record(new CourseDefinedEvent($courseId, mb_substr($name, 0, 50), $capacity));
     }
 
     protected function applyCourseDefinedEvent(CourseDefinedEvent $event): void

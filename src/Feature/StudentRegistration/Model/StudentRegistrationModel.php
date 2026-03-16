@@ -32,7 +32,7 @@ class StudentRegistrationModel extends AbstractModel
         if (!ctype_digit($studentId)) {
             throw new InvalidStudentIdException();
         }
-        $this->record(new StudentRegisteredEvent($studentId, $name));
+        $this->record(new StudentRegisteredEvent($studentId, mb_substr($name, 0, 50)));
     }
 
     protected function applyStudentRegisteredEvent(StudentRegisteredEvent $event): void

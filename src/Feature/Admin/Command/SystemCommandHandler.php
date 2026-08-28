@@ -7,8 +7,7 @@ namespace Demo\Feature\Admin\Command;
 use Backslash\CommandDispatcher\DispatcherInterface;
 use Backslash\EventStore\EventStoreInterface;
 use Backslash\Pdo\PdoInterface;
-use Backslash\PdoEventStore\Config;
-use Backslash\PdoEventStore\Driver;
+use Backslash\PdoEventStore\PdoEventStoreAdapter;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
 use Backslash\Repository\RepositoryInterface;
 use Demo\Feature\CourseListView\Projection\CourseListProjection;
@@ -23,6 +22,8 @@ class SystemCommandHandler extends AbstractCommandHandler
 
     private DispatcherInterface $dispatcher;
 
+    private PdoEventStoreAdapter $pdoEventStoreAdapter;
+
     private PdoInterface $pdo;
 
     public function __construct(
@@ -30,18 +31,20 @@ class SystemCommandHandler extends AbstractCommandHandler
         ProjectionStoreInterface $projections,
         EventStoreInterface $eventStore,
         DispatcherInterface $dispatcher,
+        PdoEventStoreAdapter $pdoEventStoreAdapter,
         PdoInterface $pdo,
     ) {
         parent::__construct($repository);
         $this->projections = $projections;
         $this->eventStore = $eventStore;
         $this->dispatcher = $dispatcher;
+        $this->pdoEventStoreAdapter = $pdoEventStoreAdapter;
         $this->pdo = $pdo;
     }
 
     protected function handleCreateDatabaseCommand(CreateDatabaseCommand $command): void
     {
-        $this->pdo->exec(Driver::SQLITE->buildCreateTableStatement(new Config()));
+        $this->pdoEventStoreAdapter->setupDatabase();
         $this->pdo->exec(file_get_contents('resources/create_table_projection_store.sql'));
     }
 

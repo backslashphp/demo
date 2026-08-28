@@ -14,20 +14,19 @@ use Backslash\EventBus\EventHandlerProxy;
 use Backslash\EventNameResolver\EventNameResolver;
 use Backslash\EventNameResolver\EventNameResolverInterface;
 use Backslash\EventNameResolver\MatchingClassEventNameResolverAdapter;
+use Backslash\EventStore\AdapterInterface as EventStoreAdapterInterface;
 use Backslash\EventStore\EventStore;
 use Backslash\EventStore\EventStoreInterface;
 use Backslash\Pdo\PdoInterface;
 use Backslash\Pdo\PdoProxy;
-use Backslash\PdoEventStore\Config as PdoEventStoreConfig;
 use Backslash\PdoEventStore\JsonEventSerializer;
-use Backslash\PdoEventStore\JsonIdentifiersSerializer;
 use Backslash\PdoEventStore\JsonMetadataSerializer;
 use Backslash\PdoEventStore\PdoEventStoreAdapter;
-use Backslash\PdoProjectionStore\Config as PdoProjectionStoreConfig;
 use Backslash\PdoProjectionStore\PdoProjectionStoreAdapter;
+use Backslash\PdoTransactionRepositoryMiddleware\PdoTransactionRepositoryMiddleware;
 use Backslash\ProjectionStore\ProjectionStore;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
-use Backslash\ProjectionStoreTransactionCommandDispatcherMiddleware\ProjectionStoreTransactionCommandDispatcherMiddleware;
+use Backslash\ProjectionStoreCommitRepositoryMiddleware\ProjectionStoreCommitRepositoryMiddleware;
 use Backslash\Repository\Repository;
 use Backslash\Repository\RepositoryInterface;
 use Backslash\Serializer\SerializeFunctionSerializer;
@@ -192,6 +191,7 @@ class Container implements ContainerInterface
                 $c->get(ProjectionStoreInterface::class),
                 $c->get(EventStoreInterface::class),
                 $c->get(DispatcherInterface::class),
+                $c->get(PdoEventStoreAdapter::class),
                 $c->get(PdoInterface::class),
             ),
 
@@ -269,13 +269,7 @@ class Container implements ContainerInterface
             ),
 
             // Infrastructure
-            DispatcherInterface::class => function (ContainerInterface $c) {
-                $dispatcher = new Dispatcher();
-                $dispatcher->addMiddleware(
-                    new ProjectionStoreTransactionCommandDispatcherMiddleware($c->get(ProjectionStoreInterface::class)),
-                );
-                return $dispatcher;
-            },
+            DispatcherInterface::class => fn () => new Dispatcher(),
             EventBusInterface::class => function (ContainerInterface $c) {
                 $bus = new EventBus();
                 $bus->addMiddleware(new StreamEnricherEventBusMiddleware($c->get(StreamEnricherInterface::class)));
@@ -284,21 +278,30 @@ class Container implements ContainerInterface
             EventNameResolverInterface::class => fn () => new EventNameResolver(
                 new MatchingClassEventNameResolverAdapter(),
             ),
-            EventStoreInterface::class => function (ContainerInterface $c) {
+            EventStoreAdapterInterface::class => function (ContainerInterface $c): EventStoreAdapterInterface {
                 $eventNameResolver = $c->get(EventNameResolverInterface::class);
-                $store = new EventStore(
-                    new PdoEventStoreAdapter(
-                        $c->get(PdoInterface::class),
-                        new PdoEventStoreConfig(),
-                        $eventNameResolver,
-                        new Serializer(new JsonEventSerializer($eventNameResolver)),
-                        new Serializer(new JsonIdentifiersSerializer()),
-                        new Serializer(new JsonMetadataSerializer()),
-                        fn () => Uuid::uuid4()->toString(),
-                    ),
+                return new PdoEventStoreAdapter(
+                    $c->get(PdoInterface::class),
+                    $eventNameResolver,
+                    new Serializer(new JsonEventSerializer($eventNameResolver)),
+                    new Serializer(new JsonMetadataSerializer()),
+                    fn () => Uuid::uuid4()->toString(),
                 );
+            },
+            EventStoreInterface::class => function (ContainerInterface $c) {
+                $store = new EventStore($c->get(EventStoreAdapterInterface::class));
                 $store->addMiddleware(new StreamEnricherEventStoreMiddleware($c->get(StreamEnricherInterface::class)));
                 return $store;
+            },
+            PdoEventStoreAdapter::class => function (ContainerInterface $c): PdoEventStoreAdapter {
+                $eventNameResolver = $c->get(EventNameResolverInterface::class);
+                return new PdoEventStoreAdapter(
+                    $c->get(PdoInterface::class),
+                    $eventNameResolver,
+                    new Serializer(new JsonEventSerializer($eventNameResolver)),
+                    new Serializer(new JsonMetadataSerializer()),
+                    fn () => Uuid::uuid4()->toString(),
+                );
             },
             PdoInterface::class => function () {
                 $dsn = (getenv('TESTING') || getenv('APP_SHARED'))
@@ -311,16 +314,24 @@ class Container implements ContainerInterface
                     new PdoProjectionStoreAdapter(
                         $c->get(PdoInterface::class),
                         new Serializer(new SerializeFunctionSerializer()),
-                        new PdoProjectionStoreConfig(),
                     ),
                 );
                 $store->addMiddleware(new CacheProjectionStoreMiddleware());
                 return $store;
             },
-            RepositoryInterface::class => fn (ContainerInterface $c) => new Repository(
-                $c->get(EventStoreInterface::class),
-                $c->get(EventBusInterface::class),
-            ),
+            RepositoryInterface::class => function (ContainerInterface $c): RepositoryInterface {
+                $repository = new Repository(
+                    $c->get(EventStoreInterface::class),
+                    $c->get(EventBusInterface::class),
+                );
+                $repository->addMiddleware(
+                    new ProjectionStoreCommitRepositoryMiddleware($c->get(ProjectionStoreInterface::class)),
+                );
+                $repository->addMiddleware(
+                    new PdoTransactionRepositoryMiddleware($c->get(PdoInterface::class)),
+                );
+                return $repository;
+            },
             SharedModeMiddleware::class => fn (ContainerInterface $c) => new SharedModeMiddleware($c->get(PdoInterface::class)),
             StreamEnricherInterface::class => fn () => new StreamEnricher(),
         ];

@@ -6,7 +6,7 @@ namespace Demo\Feature\CourseCapacity\Model;
 
 use Backslash\EventStore\Query\EventClass;
 use Backslash\EventStore\Query\Identifier;
-use Backslash\EventStore\Query\QueryInterface;
+use Backslash\EventStore\Query\Query;
 use Backslash\Model\AbstractModel;
 use Demo\Feature\CourseCapacity\Event\CourseCapacityChangedEvent;
 use Demo\Feature\CourseCapacity\Exception\InvalidCourseCapacityException;
@@ -19,12 +19,16 @@ class CourseCapacityModel extends AbstractModel
 
     private int $capacity = 0;
 
-    public static function buildQuery(string $courseId): QueryInterface
+    public static function buildQuery(string $courseId): Query
     {
-        return EventClass::in(
-            CourseCapacityChangedEvent::class,
-            CourseDefinedEvent::class,
-        )->and(Identifier::is('courseId', $courseId));
+        return new Query()
+            ->withItem(
+                EventClass::in(
+                    CourseCapacityChangedEvent::class,
+                    CourseDefinedEvent::class,
+                ),
+                Identifier::is('courseId', $courseId),
+            );
     }
 
     public function change(int $newCapacity): void

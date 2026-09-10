@@ -6,7 +6,7 @@ namespace Demo\Feature\StudentRegistration\Model;
 
 use Backslash\EventStore\Query\EventClass;
 use Backslash\EventStore\Query\Identifier;
-use Backslash\EventStore\Query\QueryInterface;
+use Backslash\EventStore\Query\Query;
 use Backslash\Model\AbstractModel;
 use Demo\Feature\StudentRegistration\Event\StudentRegisteredEvent;
 use Demo\Feature\StudentRegistration\Exception\InvalidStudentIdException;
@@ -16,10 +16,11 @@ class StudentRegistrationModel extends AbstractModel
 {
     private bool $registered = false;
 
-    public static function buildQuery(string $studentId): QueryInterface
+    public static function buildQuery(string $studentId): Query
     {
-        return EventClass::is(StudentRegisteredEvent::class)
-            ->and(
+        return new Query()
+            ->withItem(
+                EventClass::in(StudentRegisteredEvent::class),
                 Identifier::is('studentId', $studentId),
             );
     }

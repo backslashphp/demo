@@ -6,7 +6,7 @@ namespace Demo\Feature\CourseSubscription\Model;
 
 use Backslash\EventStore\Query\EventClass;
 use Backslash\EventStore\Query\Identifier;
-use Backslash\EventStore\Query\QueryInterface;
+use Backslash\EventStore\Query\Query;
 use Backslash\Model\AbstractModel;
 use Demo\Feature\CourseCapacity\Event\CourseCapacityChangedEvent;
 use Demo\Feature\CourseDefinition\Event\CourseDefinedEvent;
@@ -36,31 +36,34 @@ class CourseSubscriptionModel extends AbstractModel
 
     private array $studentSubscriptions = [];
 
-    public static function buildQuery(string $studentId, string $courseId): QueryInterface
+    public static function buildQuery(string $studentId, string $courseId): Query
     {
-        $eventForThisCourseLifecycle = EventClass::in(
-            CourseCapacityChangedEvent::class,
-            CourseDefinedEvent::class,
-        )->and(Identifier::is('courseId', $courseId));
-
-        $eventsForThisStudentLifecycle = EventClass::is(
-            StudentRegisteredEvent::class,
-        )->and(Identifier::is('studentId', $studentId));
-
-        $eventsForThisStudentSubscriptions = EventClass::in(
-            StudentUnsubscribedFromCourseEvent::class,
-            StudentSubscribedToCourseEvent::class,
-        )->and(Identifier::is('studentId', $studentId));
-
-        $eventsForSubscriptionsToThisCourse = EventClass::in(
-            StudentSubscribedToCourseEvent::class,
-            StudentUnsubscribedFromCourseEvent::class,
-        )->and(Identifier::is('courseId', $courseId));
-
-        return $eventForThisCourseLifecycle
-            ->or($eventsForThisStudentLifecycle)
-            ->or($eventsForThisStudentSubscriptions)
-            ->or($eventsForSubscriptionsToThisCourse);
+        return new Query()
+            ->withItem(
+                EventClass::in(
+                    CourseCapacityChangedEvent::class,
+                    CourseDefinedEvent::class,
+                ),
+                Identifier::is('courseId', $courseId),
+            )
+            ->withItem(
+                EventClass::in(StudentRegisteredEvent::class),
+                Identifier::is('studentId', $studentId),
+            )
+            ->withItem(
+                EventClass::in(
+                    StudentUnsubscribedFromCourseEvent::class,
+                    StudentSubscribedToCourseEvent::class,
+                ),
+                Identifier::is('studentId', $studentId),
+            )
+            ->withItem(
+                EventClass::in(
+                    StudentSubscribedToCourseEvent::class,
+                    StudentUnsubscribedFromCourseEvent::class,
+                ),
+                Identifier::is('courseId', $courseId),
+            );
     }
 
     public function subscribe(string $studentId, string $courseId): void

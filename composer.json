@@ -5,7 +5,7 @@
         "ext-json": "*",
         "ext-pdo": "*",
         "ext-pdo_sqlite": "*",
-        "backslashphp/backslash": "^3.0",
+        "backslashphp/backslash": "^4.0-dev",
         "laminas/laminas-diactoros": "^3",
         "psr/container": "^2",
         "ramsey/uuid": "^4",

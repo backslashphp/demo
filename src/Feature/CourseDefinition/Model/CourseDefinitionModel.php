@@ -6,7 +6,7 @@ namespace Demo\Feature\CourseDefinition\Model;
 
 use Backslash\EventStore\Query\EventClass;
 use Backslash\EventStore\Query\Identifier;
-use Backslash\EventStore\Query\QueryInterface;
+use Backslash\EventStore\Query\Query;
 use Backslash\Model\AbstractModel;
 use Demo\Feature\CourseCapacity\Exception\InvalidCourseCapacityException;
 use Demo\Feature\CourseDefinition\Event\CourseDefinedEvent;
@@ -17,10 +17,13 @@ class CourseDefinitionModel extends AbstractModel
 {
     private bool $courseExists = false;
 
-    public static function buildQuery(string $courseId): QueryInterface
+    public static function buildQuery(string $courseId): Query
     {
-        return EventClass::is(CourseDefinedEvent::class)
-            ->and(Identifier::is('courseId', $courseId));
+        return new Query()
+            ->withItem(
+                EventClass::in(CourseDefinedEvent::class),
+                Identifier::is('courseId', $courseId),
+            );
     }
 
     public function define(string $courseId, string $name, int $capacity): void

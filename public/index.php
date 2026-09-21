@@ -29,6 +29,7 @@ use Demo\Feature\CourseView\Http\CourseViewHandler;
 use Demo\Feature\CourseListView\Http\CourseListViewHandler;
 use Demo\Feature\StudentView\Http\StudentViewHandler;
 use Demo\Feature\StudentListView\Http\StudentListViewHandler;
+use Demo\Infrastructure\ProjectionStoreCommitMiddleware;
 use Demo\Infrastructure\SharedModeMiddleware;
 use Laminas\Diactoros\Response\HtmlResponse;
 use Laminas\Diactoros\Response\JsonResponse;
@@ -46,6 +47,7 @@ $app = AppFactory::create();
 $app->getRouteCollector()->setDefaultInvocationStrategy(new RequestHandler(true));
 $app->addBodyParsingMiddleware();
 $app->addRoutingMiddleware();
+$app->add($container->get(ProjectionStoreCommitMiddleware::class));
 if (getenv('APP_SHARED')) {
     $app->add($container->get(SharedModeMiddleware::class));
 }

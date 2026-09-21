@@ -26,7 +26,6 @@ use Backslash\PdoProjectionStore\PdoProjectionStoreAdapter;
 use Backslash\PdoTransactionRepositoryMiddleware\PdoTransactionRepositoryMiddleware;
 use Backslash\ProjectionStore\ProjectionStore;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
-use Backslash\ProjectionStoreCommitRepositoryMiddleware\ProjectionStoreCommitRepositoryMiddleware;
 use Backslash\Repository\Repository;
 use Backslash\Repository\RepositoryInterface;
 use Backslash\Serializer\SerializeFunctionSerializer;
@@ -309,6 +308,9 @@ class Container implements ContainerInterface
                     : 'sqlite:data/demo.sqlite';
                 return new PdoProxy(fn () => new PDO($dsn));
             },
+            ProjectionStoreCommitMiddleware::class => fn (ContainerInterface $c) => new ProjectionStoreCommitMiddleware(
+                $c->get(ProjectionStoreInterface::class),
+            ),
             ProjectionStoreInterface::class => function (ContainerInterface $c) {
                 $store = new ProjectionStore(
                     new PdoProjectionStoreAdapter(
@@ -323,9 +325,6 @@ class Container implements ContainerInterface
                 $repository = new Repository(
                     $c->get(EventStoreInterface::class),
                     $c->get(EventBusInterface::class),
-                );
-                $repository->addMiddleware(
-                    new ProjectionStoreCommitRepositoryMiddleware($c->get(ProjectionStoreInterface::class)),
                 );
                 $repository->addMiddleware(
                     new PdoTransactionRepositoryMiddleware($c->get(PdoInterface::class)),

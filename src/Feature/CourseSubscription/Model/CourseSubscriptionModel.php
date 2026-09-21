@@ -38,32 +38,28 @@ class CourseSubscriptionModel extends AbstractModel
 
     public static function buildQuery(string $studentId, string $courseId): Query
     {
-        return new Query()
-            ->withItem(
-                EventClass::in(
-                    CourseCapacityChangedEvent::class,
-                    CourseDefinedEvent::class,
-                ),
-                Identifier::is('courseId', $courseId),
-            )
-            ->withItem(
-                EventClass::in(StudentRegisteredEvent::class),
-                Identifier::is('studentId', $studentId),
-            )
-            ->withItem(
-                EventClass::in(
-                    StudentUnsubscribedFromCourseEvent::class,
-                    StudentSubscribedToCourseEvent::class,
-                ),
-                Identifier::is('studentId', $studentId),
-            )
-            ->withItem(
-                EventClass::in(
-                    StudentSubscribedToCourseEvent::class,
-                    StudentUnsubscribedFromCourseEvent::class,
-                ),
-                Identifier::is('courseId', $courseId),
-            );
+        return new Query(
+            EventClass::in(
+                CourseCapacityChangedEvent::class,
+                CourseDefinedEvent::class,
+            ),
+            Identifier::is('courseId', $courseId),
+        )->or(
+            EventClass::in(StudentRegisteredEvent::class),
+            Identifier::is('studentId', $studentId),
+        )->or(
+            EventClass::in(
+                StudentUnsubscribedFromCourseEvent::class,
+                StudentSubscribedToCourseEvent::class,
+            ),
+            Identifier::is('studentId', $studentId),
+        )->or(
+            EventClass::in(
+                StudentSubscribedToCourseEvent::class,
+                StudentUnsubscribedFromCourseEvent::class,
+            ),
+            Identifier::is('courseId', $courseId),
+        );
     }
 
     public function subscribe(string $studentId, string $courseId): void

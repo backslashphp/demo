@@ -21,14 +21,13 @@ class CourseCapacityModel extends AbstractModel
 
     public static function buildQuery(string $courseId): Query
     {
-        return new Query()
-            ->withItem(
-                EventClass::in(
-                    CourseCapacityChangedEvent::class,
-                    CourseDefinedEvent::class,
-                ),
-                Identifier::is('courseId', $courseId),
-            );
+        return new Query(
+            EventClass::in(
+                CourseCapacityChangedEvent::class,
+                CourseDefinedEvent::class,
+            ),
+            Identifier::is('courseId', $courseId),
+        );
     }
 
     public function change(int $newCapacity): void

@@ -19,11 +19,10 @@ class CourseDefinitionModel extends AbstractModel
 
     public static function buildQuery(string $courseId): Query
     {
-        return new Query()
-            ->withItem(
-                EventClass::in(CourseDefinedEvent::class),
-                Identifier::is('courseId', $courseId),
-            );
+        return new Query(
+            EventClass::in(CourseDefinedEvent::class),
+            Identifier::is('courseId', $courseId),
+        );
     }
 
     public function define(string $courseId, string $name, int $capacity): void

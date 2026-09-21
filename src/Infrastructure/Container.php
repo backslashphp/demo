@@ -26,6 +26,7 @@ use Backslash\PdoProjectionStore\PdoProjectionStoreAdapter;
 use Backslash\PdoTransactionRepositoryMiddleware\PdoTransactionRepositoryMiddleware;
 use Backslash\ProjectionStore\ProjectionStore;
 use Backslash\ProjectionStore\ProjectionStoreInterface;
+use Backslash\Repository\DefaultCoreStrategy;
 use Backslash\Repository\Repository;
 use Backslash\Repository\RepositoryInterface;
 use Backslash\Serializer\SerializeFunctionSerializer;
@@ -323,8 +324,10 @@ class Container implements ContainerInterface
             },
             RepositoryInterface::class => function (ContainerInterface $c): RepositoryInterface {
                 $repository = new Repository(
-                    $c->get(EventStoreInterface::class),
-                    $c->get(EventBusInterface::class),
+                    new DefaultCoreStrategy(
+                        $c->get(EventStoreInterface::class),
+                        $c->get(EventBusInterface::class),
+                    ),
                 );
                 $repository->addMiddleware(
                     new PdoTransactionRepositoryMiddleware($c->get(PdoInterface::class)),
